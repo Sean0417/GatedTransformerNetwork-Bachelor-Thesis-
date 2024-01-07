@@ -21,6 +21,7 @@ class EEGDataset(Dataset):
         self.dataset = dataset  # 选择获取测试集还是训练集
         self.train_len, \
         self.test_len, \
+        self.validate_len, \
         self.input_len, \
         self.channel_len, \
         self.output_len, \
@@ -38,12 +39,16 @@ class EEGDataset(Dataset):
             return self.train_dataset[index], self.train_label[index]
         elif self.dataset == 'test':
             return self.test_dataset[index], self.test_label[index]
+        elif self.dataset == 'validate':
+            return self.validate_dataset[index], self.validate_label[index]
 
     def __len__(self):
         if self.dataset == 'train':
             return self.train_len
         elif self.dataset == 'test':
             return self.test_len
+        elif self.dataset == 'validate':
+            return self.validate_len
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float):
         train_percentage = 0.8
@@ -140,8 +145,9 @@ class EEGDataset(Dataset):
         input = test_dataset[0].shape[-2]
         train_len = train_dataset.shape[0]
         test_len = test_dataset.shape[0]
+        validate_len = validate_dataset.shape[0]
         max_length_sample_inTest = 128
 
 
-        return train_len, test_len, input, channel, output_len, train_dataset, train_label, validate_dataset, validate_label, test_dataset, test_label, max_length_sample_inTest, train_dataset_with_no_paddding
+        return train_len, test_len, validate_len, input, channel, output_len, train_dataset, train_label, validate_dataset, validate_label, test_dataset, test_label, max_length_sample_inTest, train_dataset_with_no_paddding
 
