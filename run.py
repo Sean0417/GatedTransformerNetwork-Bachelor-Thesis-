@@ -4,7 +4,6 @@
 
 import torch
 from torch.utils.data import DataLoader
-from dataset_process.dataset_process import MyDataset
 import torch.optim as optim
 from time import time
 from tqdm import tqdm
