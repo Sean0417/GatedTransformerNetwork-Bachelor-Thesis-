@@ -15,7 +15,7 @@ from utils.random_seed import setup_seed
 
 def main():
     # 1. data preprocessing
-    path = 'module/data/EEG_Eye_State_Classification.csv'
+    path = 'EEG_Eye_State_Classification.csv'
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
@@ -97,7 +97,7 @@ def main():
                     q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, val_loader=val_loader, learning_rate=LR, patience=7, exp_index=1, model_folder_directory=model_folder_dir, DEVICE=DEVICE)
     evaluation(model=model, dataloader=train_loader, DEVICE=DEVICE, flag = 'train_set')
-    evaluation(model=model, dataloader=val_loader, DEVICE=DEVICE, flag='validation set')
+    evaluation(model=model, dataloader  =val_loader, DEVICE=DEVICE, flag='validation set')
     
 
     # 3. evaluation test sets with accuracy, precision, F1 score and AUC
