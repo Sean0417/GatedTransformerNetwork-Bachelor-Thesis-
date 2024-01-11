@@ -51,8 +51,8 @@ class EEGDataset(Dataset):
             return self.validate_len
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float):
-        train_percentage = 0.8
-        validate_percentage = 0
+        train_percentage = train_percentage
+        validate_percentage = validate_percentage
         sliding_window_length = 128
         df = pd.read_csv(path)
 

@@ -1,5 +1,7 @@
 import torch
 from module.loss import Myloss
+# return the accuracy
+# todo return the F1 score, precision, and so on
 def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
     correct = 0
     total = 0

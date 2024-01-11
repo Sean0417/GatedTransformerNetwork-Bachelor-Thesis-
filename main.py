@@ -10,12 +10,12 @@ from module.loss import Myloss
 from processEEG import EEGDataset
 from train import training_validation
 from plot import plot_learning_curve
-
+from evaluation import evaluation
 from utils.random_seed import setup_seed
 
-def main(args):
+def main():
     # 1. data preprocessing
-    path = 'EEG_Eye_State_Classification.csv'
+    path = 'module/data/EEG_Eye_State_Classification.csv'
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
@@ -38,6 +38,7 @@ def main(args):
     dropout = 0.2
     pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
     mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
+    model_folder_dir="./saved_models" 
     # 优化器选择
     optimizer_name = 'Adagrad'
 
@@ -57,43 +58,54 @@ def main(args):
     # 维度展示
     print('data structure: [lines, timesteps, features]')
     print(f'train data size: [{DATA_LEN, d_input, d_channel}]')
-    print(f'mytest data size: [{train_dataset.test_len, d_input, d_channel}]')
+    print(f'validation data size:[{train_dataset.validate_len, d_input, d_channel}]')
+    print(f'test data size: [{train_dataset.test_len, d_input, d_channel}]')
     print(f'Number of classes: {d_output}')
     
     # 2. training and validation
     # 创建Transformer模型
-    net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                    q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+    # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+    #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     
 
 
     print("===================train and validation====================")
     # experiments loop
-    for exp_idx in range(args.num_exps):
-            # wandb initialization
-        wandb.init(project='GTNforEEG',
-                job_type="training",
-                reinit=True,
-                )
-        # model initialization
-        model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-        wandb.watch(model,log="all")
-        model_name, model, all_epoch_train_loss, all_epoch_val_loss = training_validation(model=model,
-                                                        epoch_sum=args.num_of_epochs,
-                                                        train_loader=train_loader,
-                                                        val_loader=val_loader,
-                                                        patience=args.patience,
-                                                        learning_rate=args.learning_rate,
-                                                        exp_index=exp_idx,
-                                                        model_folder_directory=args.model_folder_dir)
-        # plot the learning curve
-        plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=args.plot_folder_dir,model_name=model_name)
+    # for exp_idx in range(args.num_exps):
+    #         # wandb initialization
+    #     wandb.init(project='GTNforEEG',
+    #             job_type="training",
+    #             reinit=True,
+    #             )
+    #     # model initialization
+    #     model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+    #             q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+    #     wandb.watch(model,log="all")
+    #     model_name, model, all_epoch_train_loss, all_epoch_val_loss = training_validation(model=model,
+    #                                                     epoch_sum=args.num_of_epochs,
+    #                                                     train_loader=train_loader,
+    #                                                     val_loader=val_loader,
+    #                                                     patience=args.patience,
+    #                                                     learning_rate=args.learning_rate,
+    #                                                     exp_index=exp_idx,
+    #                                                     model_folder_directory=args.model_folder_dir)
+    #     # plot the learning curve
+    #     plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=args.plot_folder_dir,model_name=model_name)
 
-        print("round"+str(exp_idx+1)+" has been done")
+    #     print("round"+str(exp_idx+1)+" has been done")
+    model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+                    q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+    training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, val_loader=val_loader, learning_rate=LR, patience=7, exp_index=1, model_folder_directory=model_folder_dir, DEVICE=DEVICE)
+    evaluation(model=model, dataloader=train_loader, DEVICE=DEVICE, flag = 'train_set')
+    evaluation(model=model, dataloader=val_loader, DEVICE=DEVICE, flag='validation set')
     
 
     # 3. evaluation test sets with accuracy, precision, F1 score and AUC
 
 
     # 4. plot
+        
+
+
+if __name__ == "__main__":
+    main()

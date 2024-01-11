@@ -7,6 +7,8 @@ import os
 import wandb
 from module.loss import Myloss
 import torch.optim as optim
+from evaluation import evaluation
+from tqdm import tqdm
 class opt_and_cri_functions:
     def __init__(self,model,learningRate):
         self.criterion = Myloss()
@@ -26,10 +28,10 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
 
     early_stopping = EarlyStopping(patience=patience,verbose=True)
 
-    for epoch in range(epoch_sum):
+    for epoch in tqdm(range(epoch_sum), desc = "Training and validation", unit = 'epoch'):
         # ==============training mode==================
         model.train()
-        for i, (x, y) in enumerate(train_loader):
+        for i, (x, y) in tqdm(enumerate(train_loader), desc = "Trainning_loader", unit='batch'):
             optimizer.zero_grad()
 
             y_pre, _, _, _, _, _, _ = model(x.to(DEVICE), 'train')
@@ -44,7 +46,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
 
         # validation==========================
         model.eval()
-        for i, (x, y) in enumerate(val_loader):
+        for i, (x, y) in tqdm(enumerate(val_loader), desc = 'validation', unit= 'batch'):
             y_pre, _, _, _, _, _, _ = model(x.to(DEVICE), 'train')
 
             batch_loss = criterion(y_pre, y.to(DEVICE))
@@ -52,7 +54,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
         
         epoch_val_loss = np.average(all_batch_val_losses)
 
-        wandb.log({"train_loss": epoch_train_loss,"val_loss":epoch_val_loss})
+        # wandb.log({"train_loss": epoch_train_loss,"val_loss":epoch_val_loss})
         all_epoch_train_losses.append(epoch_train_loss)
         all_epoch_val_losses.append(epoch_val_loss)
 
