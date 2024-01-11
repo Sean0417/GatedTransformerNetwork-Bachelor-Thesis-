@@ -4,6 +4,7 @@ venv
 # folders
 pic
 models
+saved_models
 __pycache__
 wandb
 # files
