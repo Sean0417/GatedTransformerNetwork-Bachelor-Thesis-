@@ -1,0 +1,36 @@
+source venv/bin/activate
+path='EEG_Eye_State_Classification.csv'
+plot_folder_dir="./pic" 
+model_folder_dir="./saved_models"
+EPOCH=100
+BATCH_SIZE=200
+LR=1e-4
+patience=10
+train_percentage=0.7
+validate_percentage=0.1
+d_model=512
+d_hidden=1024
+q=8
+v=8
+head=8
+N=8
+dropout=0.2
+optimizer_name='Adagrad'
+python main.py --path=$path \
+ --plot_folder_dir=$plot_folder_dir \
+ --model_folder_dir=$model_folder_dir \
+ --EPOCH=$EPOCH \
+ --BATCH_SIZE=$BATCH_SIZE \
+ --learning_rate=$LR \
+ --patience=$patience \
+ --train_percentage=$train_percentage \
+ --validate_percentage=$validate_percentage \
+ --d_model=$d_model \
+ --d_hidden=$d_hidden \
+ -q=$q \
+ -v=$v \
+ -head=$head \
+ -N=$N \
+ --dropout=$dropout \
+ --optimizer_name=$optimizer_name
+deactivate
