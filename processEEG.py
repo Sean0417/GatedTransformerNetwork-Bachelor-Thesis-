@@ -11,7 +11,8 @@ class EEGDataset(Dataset):
                  path: str,
                  dataset: str,
                  train_percentage:float,
-                 validate_percentage:float):
+                 validate_percentage:float,
+                 sliding_window_length:int):
         """
         训练数据集与测试数据集的Dataset对象
         :param path: 数据集路径
@@ -32,7 +33,7 @@ class EEGDataset(Dataset):
         self.test_dataset, \
         self.test_label, \
         self.max_length_sample_inTest, \
-        self.train_dataset_with_no_paddding = self.pre_option(path,train_percentage, validate_percentage)
+        self.train_dataset_with_no_paddding = self.pre_option(path,train_percentage, validate_percentage,sliding_window_length)
     
     def __getitem__(self, index):
         if self.dataset == 'train':
@@ -50,10 +51,10 @@ class EEGDataset(Dataset):
         elif self.dataset == 'validate':
             return self.validate_len
     
-    def pre_option(self, path: str, train_percentage: float, validate_percentage: float):
+    def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
         validate_percentage = validate_percentage
-        sliding_window_length = 128
+        sliding_window_length = sliding_window_length
         df = pd.read_csv(path)
 
         # remove the outliers
@@ -114,6 +115,7 @@ class EEGDataset(Dataset):
                     y.append(_y)
 
                     record_row = row
+                # break
 
 
         print(record_row)

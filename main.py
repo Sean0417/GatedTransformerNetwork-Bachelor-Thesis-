@@ -32,7 +32,8 @@ def main(args):
 
     train_percentage = args.train_percentage
     validate_percentage = args.validate_percentage
-
+    
+    # hyperparameters inside model
     d_model = args.d_model
     d_hidden = args.d_hidden
     q = args.q
@@ -42,14 +43,17 @@ def main(args):
     dropout = args.dropout
     pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
     mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
+
+    # training_hyperparameters
+    sliding_window_length = args.sliding_window_length
     
     # 优化器选择
     optimizer_name = args.optimizer_name
 
     # split the data into train, validate and test
-    train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage)
-    test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage)
-    validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage)
+    train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
+    test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
+    validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
     val_loader = DataLoader(dataset=validate_dataset, batch_size=BATCH_SIZE, shuffle=False)
@@ -130,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument('-head', type=int, required=True, help='the head number of the Multi-Head Attention')
     parser.add_argument('-N',  type=int, required=True, help='the number of the encoders')
     parser.add_argument('--dropout', type=float, required=True, help="the random dropout")
+    parser.add_argument('--sliding_window_length', type=int, required=True, help="The length of sliding window when spliting the data")
     parser.add_argument('--optimizer_name',type=str, required=True, default='Adagrad', help="The name of the optimizer")
     args = parser.parse_args()
     main(args=args)

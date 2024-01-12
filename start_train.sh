@@ -15,6 +15,7 @@ v=8
 head=8
 N=8
 dropout=0.2
+sliding_window_length=128
 optimizer_name='Adagrad'
 python main.py --path=$path \
  --plot_folder_dir=$plot_folder_dir \
@@ -32,5 +33,6 @@ python main.py --path=$path \
  -head=$head \
  -N=$N \
  --dropout=$dropout \
+ --sliding_window_length=$sliding_window_length \
  --optimizer_name=$optimizer_name
 deactivate
