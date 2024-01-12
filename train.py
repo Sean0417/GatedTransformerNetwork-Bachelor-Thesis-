@@ -10,14 +10,21 @@ import torch.optim as optim
 from evaluation import evaluation
 from tqdm import tqdm
 class opt_and_cri_functions:
-    def __init__(self,model,learningRate):
+    def __init__(self,model,learningRate,optimizer_name):
         self.criterion = Myloss()
-        self.optimizer = optim.Adagrad(model.parameters(), lr = learningRate)
+        if optimizer_name == 'Adam':
+            self.optimizer = optim.Adam(model.parameters(), lr = learningRate)
+        elif optimizer_name == 'Adagrad':
+            self.optimizer = optim.Adagrad(model.parameters(), lr = learningRate)
+        elif optimizer_name == 'AdamW':
+            self.optimizer = optim.AdamW(model.parameters(), lr = learningRate)
+            
+        
 
-def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE):
+def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name):
     time_start = time.time()
     
-    ocfunction = opt_and_cri_functions(model,learning_rate)
+    ocfunction = opt_and_cri_functions(model,learning_rate, optimizer_name)
     optimizer = ocfunction.optimizer
     criterion = ocfunction.criterion
 

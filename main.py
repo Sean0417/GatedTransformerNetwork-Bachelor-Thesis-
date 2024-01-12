@@ -16,35 +16,35 @@ from utils.random_seed import setup_seed
 setup_seed(30)
 def main(args):
     # 1. data preprocessing
-    path = 'EEG_Eye_State_Classification.csv'
-    plot_folder_dir="./pic" 
-    model_folder_dir="./saved_models" 
+    path = args.path
+    plot_folder_dir= args.plot_folder_dir
+    model_folder_dir= args.model_folder_dir
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
     # 超参数设置
-    EPOCH = 100
-    BATCH_SIZE = 200
-    LR = 1e-4
+    EPOCH = args.EPOCH
+    BATCH_SIZE = args.BATCH_SIZE
+    LR = args.learning_rate
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
-    patience = 10
+    patience = args.patience
     print(f'use device: {DEVICE}')
 
-    train_percentage = 0.7
-    validate_percentage = 0.1
+    train_percentage = args.train_percentage
+    validate_percentage = args.validate_percentage
 
-    d_model = 512
-    d_hidden = 1024
-    q = 8
-    v = 8
-    h = 8
-    N = 8
-    dropout = 0.2
+    d_model = args.d_model
+    d_hidden = args.d_hidden
+    q = args.q
+    v = args.v
+    h = args.head
+    N = args.N
+    dropout = args.dropout
     pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
     mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
     
     # 优化器选择
-    optimizer_name = 'Adagrad'
+    optimizer_name = args.optimizer_name
 
     # split the data into train, validate and test
     train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage)
@@ -99,7 +99,7 @@ def main(args):
     #     print("round"+str(exp_idx+1)+" has been done")
     model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                     q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    model_name, model, all_epoch_train_loss, all_epoch_val_loss=training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, val_loader=val_loader, learning_rate=LR, patience=patience, exp_index=1, model_folder_directory=model_folder_dir, DEVICE=DEVICE)
+    model_name, model, all_epoch_train_loss, all_epoch_val_loss=training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, val_loader=val_loader, learning_rate=LR, patience=patience, exp_index=1, model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
     plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=plot_folder_dir,model_name=model_name)
     evaluation(model=model, dataloader=train_loader, DEVICE=DEVICE, flag = 'train_set')
     evaluation(model=model, dataloader=val_loader, DEVICE=DEVICE, flag='validation set')
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     parser.add_argument('--d_hidden', type=int, required=True, default=1024, help="The dimmension of the hidden layers in Position-wise Feedforward network")
     parser.add_argument('-q', type=int, required=True, help='the dimension of the linear layer in the Multi-Head Attention')
     parser.add_argument('-v', type=int, required=True, help='the dimension of the linear layer in the Multi-Head Attention')
-    parser.add_argument('-h', type=int, required=True, help='the head number of the Multi-Head Attention')
+    parser.add_argument('-head', type=int, required=True, help='the head number of the Multi-Head Attention')
     parser.add_argument('-N',  type=int, required=True, help='the number of the encoders')
     parser.add_argument('--dropout', type=float, required=True, help="the random dropout")
     parser.add_argument('--optimizer_name',type=str, required=True, default='Adagrad', help="The name of the optimizer")
