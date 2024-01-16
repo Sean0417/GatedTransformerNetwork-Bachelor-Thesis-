@@ -103,6 +103,8 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
     save_model_time = time.strftime("%Y%m%d_%H%M%S")
     model_name = 'model_params'+save_model_time+"_"+str(exp_index+1)
     torch.save(model.state_dict(),model_folder_directory+'/'+model_name+'.pkl')
+    # load the last checkpoint with the best model
+    model.load_state_dict(torch.load('checkpoint.pt'))
 
 
     return model_name, model, all_epoch_train_losses, all_epoch_val_losses
