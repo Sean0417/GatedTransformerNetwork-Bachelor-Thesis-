@@ -32,6 +32,9 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
     all_batch_val_losses = []
     all_epoch_train_losses = []
     all_epoch_val_losses = []
+    
+    all_epoch_train_accs = []
+    all_epoch_val_accs = []
 
     early_stopping = EarlyStopping(patience=patience,verbose=True)
 
@@ -65,12 +68,22 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
         all_epoch_train_losses.append(epoch_train_loss)
         all_epoch_val_losses.append(epoch_val_loss)
 
+        epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1 = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
+        epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1 = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
+
+        all_epoch_train_accs.append(epoch_train_acc)
+        all_epoch_val_accs.append(epoch_val_acc)
+
+
+
         epoch_len = len(str(epoch_sum))
 
         print_msg = (f'round:{exp_index+1}:[{epoch:>{epoch_len}}/{epoch_sum::>{epoch_len}}]'+
-                     f'train_loss:{epoch_train_loss:.5f}' + ' '
-                     f'valid_loss:{epoch_val_loss:.5f}')
+                     f'train_loss:{epoch_train_loss:.5f}' + ' '+f'train_acc:{epoch_train_acc:.5f}'+' '+
+                     f'valid_loss:{epoch_val_loss:.5f}' + ' ' +f'valid_acc:{epoch_val_acc:.5f}')
         print(print_msg)
+
+
 
         # clear lists to track next epoch
         all_batch_train_losses = []
@@ -83,6 +96,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
         if early_stopping.early_stop:
             print("Early stopping")
             break
+        print("=================")
 
     # time consumed in one experiment
     time_end = time.time()
