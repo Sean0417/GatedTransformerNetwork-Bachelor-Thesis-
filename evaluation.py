@@ -38,17 +38,17 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
                         FP += 1
                     elif label_index[i] == 0:
                         FN += 1
-        precision = round((100 * (TP / (TP + FP))),2)
-        recall = round((100*(TP / (FN + TP))),2)
-        F1 = round((100*((2*precision*recall)/(precision+recall))),2)
+        precision = TP / (TP + FP)
+        recall =TP / (FN + TP)
+        F1 = (2*precision*recall)/(precision+recall)
 
         # if flag == 'test_set':
         #     # correct_on_test.append(round((100 * correct / total), 2))
         # elif flag == 'train_set':
         #     # correct_on_train.append(round((100 * correct / total), 2))
-        print(f'Metrix on {flag}, accuracy: %.2f %%' % (100 * correct / total) +" " + f'precision:  %.2f %%' % precision + ' ' + f'recall: %.2f %%' % recall +
-              ' ' + f'F1 score: %.2f %%' % F1)
+        print(f'Metrix on {flag}, accuracy: %.2f %%' % (100 * correct / total) +" " + f'precision:  %.2f %%' % round(100*precision,2) + ' ' + f'recall: %.2f %%' % round(100*recall,2) +
+              ' ' + f'F1 score: %.2f %%' % round(100*F1,2))
 
-        return round((100 * correct / total), 2), precision, recall, F1
+        return round((100 * correct / total), 2), round(100*precision,2), round(100*recall,2), round(100*F1,2)
 
 
