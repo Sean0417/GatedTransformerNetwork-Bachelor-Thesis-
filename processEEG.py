@@ -61,7 +61,7 @@ class EEGDataset(Dataset):
     
         return array_normalized
     
-    def transform_data_shape(data,sliding_window_length):
+    def slide_data_with_slidingWindow(self, data, sliding_window_length):
         X = []
         y = []
         flag = 0
@@ -77,9 +77,47 @@ class EEGDataset(Dataset):
                         X.append(_X)
                         y.append(_y[0])
                         record_row = row
-                    else:
+                    elif sum(_y) == sliding_window_length-1 or sum(_y) == 1:
                         flag = row + sliding_window_length
                         break
+                    else:
+                        if _y[0] == 0:
+                            boundary_indices = np.where(np.diff(_y) == 1)[0] + 1
+                            _X = _X[0:boundary_indices]
+                            _y = _y[0]
+                            
+                            zero_array = np.zeros(14)
+                            zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                            zero_array_list = np.vstack(zero_array_list)
+
+                            _X = np.array([_X])
+                            _X = np.concatenate((_X, zero_array_list), axis=0)
+
+                            X.append(_X)
+                            y.append(_y)
+
+                            break
+                        
+                        elif _y[0] == 1:
+                            boundary_indices = np.where(np.diff(_y) == -1)[0] + 1
+                            _X = _X[0:boundary_indices]
+                            _y = _y[0]
+
+                            zero_array = np.zeros(14)
+                            zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                            zero_array_list = np.vstack(zero_array_list)
+
+                            _X = np.array([_X])
+                            _X = np.concatenate((_X, zero_array_list), axis=0)
+
+                            X.append(_X)
+                            y.append(_y)
+
+                            break
+
+
+
+
             else:
                 for row in range(flag, arr_len):
                     _X = data[row,0:14]
@@ -96,6 +134,9 @@ class EEGDataset(Dataset):
                     y.append(_y)
 
                     record_row = row
+        
+        X = np.array(X)
+        y = np.array(y)
         
         return X, y
     
@@ -141,55 +182,11 @@ class EEGDataset(Dataset):
         normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
         normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
-        X = []
-        y = []
-        
-        flag = 0
-        record_row = 0
-        
-        while(record_row != arr_len-1):
-            if arr_len - flag > sliding_window_length:
-                for row in range(flag, arr_len - sliding_window_length):
-                    _X = arr_filtered1[row:row+sliding_window_length,0:14]
-                    _y = arr_filtered1[row:row+sliding_window_length,14]
-                    if sum(_y) == sliding_window_length or sum(_y) == 0:
-                        X.append(_X)
-                        y.append(_y[0])
-                        record_row = row
-                    else:
-                        flag = row + sliding_window_length
-                        break
-            else:
-                for row in range(flag, arr_len):
-                    _X = arr_filtered1[row,0:14]
-                    _y = arr_filtered1[row,14]
-
-                    # padding 0
-                    zero_array = np.zeros(14)
-                    zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
-                    zero_array_list = np.vstack(zero_array_list)
-                    _X = np.array([_X])
-                    _X = np.concatenate((_X, zero_array_list), axis=0)
-                    
-                    X.append(_X)
-                    y.append(_y)
-
-                    record_row = row
-                # break
-
-
-        print(record_row)
-        X = np.array(X)
-        y = np.array(y)
-        # X = torch.Tensor(X)
-        # y = torch.Tensor(y)
+        train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
+        validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
+        test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
 
         # split the data into training, validation and testset 
-        train_size = int(len(X)*train_percentage)
-        validate_size = int(len(X)*validate_percentage)
-        train_dataset, train_label = X[:train_size], y[:train_size]
-        validate_dataset, validate_label = X[train_size:train_size+validate_size],y[train_size:train_size+validate_size]
-        test_dataset, test_label = X[train_size+validate_size:],y[train_size+validate_size:]
 
         output_len = 2
         train_dataset_with_no_paddding = train_dataset
