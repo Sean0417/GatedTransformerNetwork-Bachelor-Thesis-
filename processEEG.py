@@ -50,6 +50,54 @@ class EEGDataset(Dataset):
             return self.test_len
         elif self.dataset == 'validate':
             return self.validate_len
+    def min_max_normalization(self,min_val,max_val,data):
+        # select the 14 features
+        selected_features = data[:, :14]
+
+        # Min-Max normalization
+        normalized_features = (selected_features - min_val) / (max_val - min_val)
+
+        array_normalized = np.hstack((normalized_features, data[:, 14:]))
+    
+        return array_normalized
+    
+    def transform_data_shape(data,sliding_window_length):
+        X = []
+        y = []
+        flag = 0
+        record_row = 0
+        arr_len = data.shape[0]
+
+        while(record_row != arr_len-1):
+            if arr_len - flag > sliding_window_length:
+                for row in range(flag, arr_len - sliding_window_length):
+                    _X = data[row:row+sliding_window_length,0:14]
+                    _y = data[row:row+sliding_window_length,14]
+                    if sum(_y) == sliding_window_length or sum(_y) == 0:
+                        X.append(_X)
+                        y.append(_y[0])
+                        record_row = row
+                    else:
+                        flag = row + sliding_window_length
+                        break
+            else:
+                for row in range(flag, arr_len):
+                    _X = data[row,0:14]
+                    _y = data[row,14]
+
+                    # padding 0
+                    zero_array = np.zeros(14)
+                    zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                    zero_array_list = np.vstack(zero_array_list)
+                    _X = np.array([_X])
+                    _X = np.concatenate((_X, zero_array_list), axis=0)
+                    
+                    X.append(_X)
+                    y.append(_y)
+
+                    record_row = row
+        
+        return X, y
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
@@ -68,18 +116,30 @@ class EEGDataset(Dataset):
 
         arr_filtered1 = np.array(df_filtered1)
         arr_len = arr_filtered1.shape[0]
-        
-        # min-max normalization
-        min_values = arr_filtered1[:, :-1].min(axis=0, keepdims=True)
-        max_values = arr_filtered1[:, :-1].max(axis=0, keepdims=True)
 
-        normalized_array = (arr_filtered1[:, :-1] - min_values) / (max_values - min_values)
+        train_size = int(train_percentage*arr_len)
+        val_size = int(validate_percentage*arr_len)
+        test_size = arr_len - train_size - val_size
 
-        # print("Max Values in Each Column:", max_values)
-        # print("Min Values in Each Column:", min_values)
-        
-        normalized_array = np.hstack((normalized_array, arr_filtered1[:, -1:]))
-        arr_filtered1 = normalized_array
+        train_data = arr_filtered1[:train_size,:]
+        val_data = arr_filtered1[train_size:train_size+val_size,:]
+        test_data = arr_filtered1[train_size+val_size:,:]
+
+        # calculate the max and min value of the train data
+        min_train_val = train_data[:,0:14].min(axis=0)
+        max_train_val = train_data[:,0:14].max(axis=0)
+
+        min_test_val = test_data[:,0:14].min(axis=0)
+        max_test_val = test_data[:,0:14].max(axis=0)
+        # print("min_test:",min_test_val)
+        # print("max_test:",max_test_val)
+
+        min_validate_val = val_data[:,0:14].min(axis=0)
+        max_validate_val = val_data[:,0:14].max(axis=0)
+
+        normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
+        normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
+        normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
         X = []
         y = []
