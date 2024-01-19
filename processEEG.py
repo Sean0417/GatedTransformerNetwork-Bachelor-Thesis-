@@ -68,8 +68,8 @@ class EEGDataset(Dataset):
         record_row = 0
         arr_len = data.shape[0]
 
-        while(record_row != arr_len-1):
-            if arr_len - flag > sliding_window_length:
+        while(record_row < arr_len-sliding_window_length-1):
+            if arr_len - flag -1 > sliding_window_length:
                 for row in range(flag, arr_len - sliding_window_length):
                     _X = data[row:row+sliding_window_length,0:14]
                     _y = data[row:row+sliding_window_length,14]
@@ -83,35 +83,39 @@ class EEGDataset(Dataset):
                     else:
                         if _y[0] == 0:
                             boundary_indices = np.where(np.diff(_y) == 1)[0] + 1
-                            _X = _X[0:boundary_indices]
+                            _X = _X[0:boundary_indices[0]]
                             _y = _y[0]
                             
                             zero_array = np.zeros(14)
-                            zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                            zero_array_list = np.tile(zero_array, (sliding_window_length-_X.shape[0],1))
                             zero_array_list = np.vstack(zero_array_list)
 
-                            _X = np.array([_X])
+                            _X = np.array(_X)
                             _X = np.concatenate((_X, zero_array_list), axis=0)
 
                             X.append(_X)
                             y.append(_y)
+
+                            flag = row + boundary_indices[0]
 
                             break
                         
                         elif _y[0] == 1:
                             boundary_indices = np.where(np.diff(_y) == -1)[0] + 1
-                            _X = _X[0:boundary_indices]
+                            _X = _X[0:boundary_indices[0]]
                             _y = _y[0]
 
                             zero_array = np.zeros(14)
-                            zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                            zero_array_list = np.tile(zero_array, (sliding_window_length-_X.shape[0],1))
                             zero_array_list = np.vstack(zero_array_list)
 
-                            _X = np.array([_X])
+                            _X = np.array(_X)
                             _X = np.concatenate((_X, zero_array_list), axis=0)
 
                             X.append(_X)
                             y.append(_y)
+
+                            flag = row + boundary_indices[0]
 
                             break
 
@@ -119,21 +123,22 @@ class EEGDataset(Dataset):
 
 
             else:
-                for row in range(flag, arr_len):
-                    _X = data[row,0:14]
-                    _y = data[row,14]
+                # for row in range(flag, arr_len):
+                #     _X = data[row,0:14]
+                #     _y = data[row,14]
 
-                    # padding 0
-                    zero_array = np.zeros(14)
-                    zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
-                    zero_array_list = np.vstack(zero_array_list)
-                    _X = np.array([_X])
-                    _X = np.concatenate((_X, zero_array_list), axis=0)
+                #     # padding 0
+                #     zero_array = np.zeros(14)
+                #     zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                #     zero_array_list = np.vstack(zero_array_list)
+                #     _X = np.array([_X])
+                #     _X = np.concatenate((_X, zero_array_list), axis=0)
                     
-                    X.append(_X)
-                    y.append(_y)
+                #     X.append(_X)
+                #     y.append(_y)
 
-                    record_row = row
+                #     record_row = row
+                break
         
         X = np.array(X)
         y = np.array(y)
