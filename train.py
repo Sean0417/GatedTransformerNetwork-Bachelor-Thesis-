@@ -21,7 +21,7 @@ class opt_and_cri_functions:
             
         
 
-def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name):
+def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name):
     time_start = time.time()
     
     ocfunction = opt_and_cri_functions(model,learning_rate, optimizer_name)
@@ -64,13 +64,17 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
         
         epoch_val_loss = np.average(all_batch_val_losses)
 
-        # wandb.log({"train_loss": epoch_train_loss,"val_loss":epoch_val_loss})
+        wandb.log({"train_loss": epoch_train_loss,"val_loss":epoch_val_loss})
         all_epoch_train_losses.append(epoch_train_loss)
         all_epoch_val_losses.append(epoch_val_loss)
 
         epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1 = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
         epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1 = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
-
+        epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1 = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        
+        wandb.log({"train_acc:": epoch_train_acc, 'train_precision':epoch_train_precision, "train_recall": epoch_train_recall, "train_F1": epoch_train_F1})
+        wandb.log({"val_acc:": epoch_val_acc, 'val_precision':epoch_val_precision, "train_recall": epoch_val_recall, "train_F1": epoch_val_F1})
+        wandb.log({"test_acc:": epoch_test_acc, 'test_precision':epoch_test_precision, "test_recall": epoch_test_recall, "test_F1": epoch_test_F1})
         all_epoch_train_accs.append(epoch_train_acc)
         all_epoch_val_accs.append(epoch_val_acc)
 
@@ -79,7 +83,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,learning_rate,pa
         epoch_len = len(str(epoch_sum))
 
         print_msg = (f'round:{exp_index+1}:[{epoch:>{epoch_len}}/{epoch_sum::>{epoch_len}}]'+
-                     f'train_loss:{epoch_train_loss:.5f}' + ' '+f'train_acc:{epoch_train_acc:.5f}')
+                     f'train_loss:{epoch_train_loss:.5f}' + " " + 'validation_loss'+f':{epoch_val_loss:.5f}')
         print(print_msg)
 
 
