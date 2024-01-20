@@ -17,6 +17,7 @@ N=8
 dropout=0.2
 sliding_window_length=128
 optimizer_name='Adagrad'
+num_exps=50
 python main.py --path=$path \
  --plot_folder_dir=$plot_folder_dir \
  --model_folder_dir=$model_folder_dir \
@@ -34,5 +35,6 @@ python main.py --path=$path \
  -N=$N \
  --dropout=$dropout \
  --sliding_window_length=$sliding_window_length \
- --optimizer_name=$optimizer_name
+ --optimizer_name=$optimizer_name \
+ --num_exps=$num_exps
 deactivate
