@@ -57,7 +57,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
         # validation==========================
         model.eval()
         for i, (x, y) in tqdm(enumerate(val_loader), desc = 'validation', unit= 'batch'):
-            y_pre, _, _, _, _, _, _ = model(x.to(DEVICE), 'train')
+            y_pre, _, _, _, _, _, _ = model(x.to(DEVICE), 'test')
 
             batch_loss = criterion(y_pre, y.to(DEVICE))
             all_batch_val_losses.append(batch_loss.item())
