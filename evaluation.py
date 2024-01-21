@@ -40,8 +40,11 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
                         FN += 1
         precision = TP / (TP + FP)
         recall =TP / (FN + TP)
-        F1 = (2*precision*recall)/(precision+recall)
-
+        if(precision+recall != 0):
+            F1 = (2*precision*recall)/(precision+recall)
+        else:
+            print("since the denominator is zero, F1 is set to 0")
+            F1 = 0
         # if flag == 'test_set':
         #     # correct_on_test.append(round((100 * correct / total), 2))
         # elif flag == 'train_set':
