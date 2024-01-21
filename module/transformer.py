@@ -59,8 +59,8 @@ class Transformer(Module):
         """
         # step-wise
         # score矩阵为 input， 默认加mask 和 pe
-        encoding_1 = self.embedding_channel(x)
-        input_to_gather = encoding_1
+        encoding_1 = self.embedding_channel(x) # x[batchsize, time_step, feature] -> encoding_1[batchsize, time_step, d_model]
+        input_to_gather = encoding_1           # x[1000, 128, 14] -> [1000, 128, 512]
 
         if self.pe:
             pe = torch.ones_like(encoding_1[0])
@@ -75,23 +75,28 @@ class Transformer(Module):
             encoding_1 = encoding_1 + pe
 
         for encoder in self.encoder_list_1:
-            encoding_1, score_input = encoder(encoding_1, stage)
+            encoding_1, score_input = encoder(encoding_1, stage) 
 
         # channel-wise
         # score矩阵为channel 默认不加mask和pe
-        encoding_2 = self.embedding_input(x.transpose(-1, -2))
-        channel_to_gather = encoding_2
+        encoding_2 = self.embedding_input(x.transpose(-1, -2)) # x[batchsize, time_step, feature] -> encoding_1[batchsize, feature, d_model]
+        channel_to_gather = encoding_2                         # x[1000, 128, 14]->[1000, 14, 128] -> [1000, 14, 512]
 
         for encoder in self.encoder_list_2:
-            encoding_2, score_channel = encoder(encoding_2, stage)
+            encoding_2, score_channel = encoder(encoding_2, stage) # [1000, 14, 512]
 
         # 三维变二维
-        encoding_1 = encoding_1.reshape(encoding_1.shape[0], -1)
-        encoding_2 = encoding_2.reshape(encoding_2.shape[0], -1)
+        encoding_1 = encoding_1.reshape(encoding_1.shape[0], -1) # stepwise S [1000, d_model*]
+        encoding_2 = encoding_2.reshape(encoding_2.shape[0], -1) # channelwise C
 
         # gate
-        gate = F.softmax(self.gate(torch.cat([encoding_1, encoding_2], dim=-1)), dim=-1)
-        encoding = torch.cat([encoding_1 * gate[:, 0:1], encoding_2 * gate[:, 1:2]], dim=-1)
+        h = self.gate(torch.cat([encoding_1, encoding_2], dim=-1))
+        gate = F.softmax(h,dim=-1)
+        g1 = gate[:,0:1]
+        g2 = gate[:,1:2]
+        encoding = torch.cat([encoding_1 * g1, encoding_2*g2], dim=-1) #y
+        # gate = F.softmax(self.gate(torch.cat([encoding_1, encoding_2], dim=-1)), dim=-1)
+        # encoding = torch.cat([encoding_1 * gate[:, 0:1], encoding_2 * gate[:, 1:2]], dim=-1)
 
         # 输出
         output = self.output_linear(encoding)
