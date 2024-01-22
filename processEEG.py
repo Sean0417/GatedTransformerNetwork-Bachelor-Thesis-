@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 import torch
+import random
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -123,27 +124,69 @@ class EEGDataset(Dataset):
 
 
             else:
-                # for row in range(flag, arr_len):
-                #     _X = data[row,0:14]
-                #     _y = data[row,14]
+                for row in range(flag, arr_len):
+                    _X = data[row,0:14]
+                    _y = data[row,14]
 
-                #     # padding 0
-                #     zero_array = np.zeros(14)
-                #     zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
-                #     zero_array_list = np.vstack(zero_array_list)
-                #     _X = np.array([_X])
-                #     _X = np.concatenate((_X, zero_array_list), axis=0)
+                    # padding 0
+                    zero_array = np.zeros(14)
+                    zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                    zero_array_list = np.vstack(zero_array_list)
+                    _X = np.array([_X])
+                    _X = np.concatenate((_X, zero_array_list), axis=0)
                     
-                #     X.append(_X)
-                #     y.append(_y)
+                    X.append(_X)
+                    y.append(_y)
 
-                #     record_row = row
+                    record_row = row
                 break
         
         X = np.array(X)
         y = np.array(y)
         
         return X, y
+
+    def balance_data(self, X, y):
+        # get the number of the 1s and 0s
+        ones = 0
+        zeros = 0
+        _X_label_zero = []
+        _y1 = []
+        _y0 = []
+        _X_label_one = []
+        for i in range(y.shape[0]):
+            if y[i] == 0:
+                zeros += 1
+                _X_label_zero.append(X[i])
+                _y0.append(int(y[i]))
+            elif y[i] == 1:
+                ones += 1
+                _X_label_one.append(X[i])
+                _y1.append(int(y[i]))
+        
+        if zeros > ones :
+            diff = len(_X_label_zero) - len(_X_label_one)
+            random_elements = random.choices(_X_label_one,k=diff)
+            _y11 = np.ones(len(random_elements)).tolist()
+            _X_label_one.extend(random_elements)
+            _y1.extend(_y11)
+        elif ones > zeros:
+            diff = len(_X_label_one) - len(_X_label_zero)
+            random_elements = random.choices(_X_label_zero, k=diff)
+            _y00 = np.zeros(len(random_elements)).tolist()
+            _X_label_zero.extend(random_elements)
+            _y0.extend(_y00)
+
+        _y1.extend(_y0)
+        _X_label_one.extend(_X_label_zero)
+
+        y = _y1
+        X = _X_label_one
+
+        y = np.array(y)
+        X = np.array(X)
+
+        return X,y
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
@@ -188,6 +231,8 @@ class EEGDataset(Dataset):
         normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
         train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
+        # balance the output of labels of 1 and zeros
+        train_dataset, train_label = self.balance_data(train_dataset, train_label)
         validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
         test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
 
