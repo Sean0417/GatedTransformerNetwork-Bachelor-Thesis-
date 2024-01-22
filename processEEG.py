@@ -223,18 +223,20 @@ class EEGDataset(Dataset):
         # print("min_test:",min_test_val)
         # print("max_test:",max_test_val)
 
-        min_validate_val = val_data[:,0:14].min(axis=0)
-        max_validate_val = val_data[:,0:14].max(axis=0)
+        # min_validate_val = val_data[:,0:14].min(axis=0)
+        # max_validate_val = val_data[:,0:14].max(axis=0)
 
         normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
-        normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
+        # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
         normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
         train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
         # balance the output of labels of 1 and zeros
         train_dataset, train_label = self.balance_data(train_dataset, train_label)
-        validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
+        # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
+        # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
         test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
+        # test_dataset, test_label = self.balance_data(test_dataset, test_label)
 
         # split the data into training, validation and testset 
 
@@ -247,8 +249,10 @@ class EEGDataset(Dataset):
         train_label = torch.Tensor(train_label)
         test_dataset = torch.Tensor(test_dataset)
         test_label = torch.Tensor(test_label)
-        validate_dataset = torch.Tensor(validate_dataset)
-        validate_label = torch.Tensor(validate_label)
+        # validate_dataset = torch.Tensor(validate_dataset)
+        # validate_label = torch.Tensor(validate_label)
+        validate_dataset = torch.Tensor(test_dataset)
+        validate_label = torch.Tensor(test_label)
 
         channel = train_dataset[0].shape[-1]
         input = test_dataset[0].shape[-2]
