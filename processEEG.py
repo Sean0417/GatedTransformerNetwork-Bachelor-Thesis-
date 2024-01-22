@@ -187,6 +187,25 @@ class EEGDataset(Dataset):
         X = np.array(X)
 
         return X,y
+    def get_labels(self, X, y, flg = "train"):
+        ones = 0
+        zeros = 0
+        _X_label_zero = []
+        _y1 = []
+        _y0 = []
+        _X_label_one = []
+        for i in range(y.shape[0]):
+            if y[i] == 0:
+                zeros += 1
+                _X_label_zero.append(X[i])
+                _y0.append(int(y[i]))
+            elif y[i] == 1:
+                ones += 1
+                _X_label_one.append(X[i])
+                _y1.append(int(y[i]))
+        print("There are "+str(zeros)+" zeros. on "+flg+" set.")
+        print("There are " + str(ones)+" ones. on"+ flg +" set.")
+        return zeros, ones
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
@@ -232,10 +251,12 @@ class EEGDataset(Dataset):
 
         train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
         # balance the output of labels of 1 and zeros
+        train_zeros, train_oens = self.get_labels(train_dataset, train_label, flg="train")
         train_dataset, train_label = self.balance_data(train_dataset, train_label)
         # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
         # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
         test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
+        test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
         # test_dataset, test_label = self.balance_data(test_dataset, test_label)
 
         # split the data into training, validation and testset 
@@ -263,4 +284,3 @@ class EEGDataset(Dataset):
 
 
         return train_len, test_len, validate_len, input, channel, output_len, train_dataset, train_label, validate_dataset, validate_label, test_dataset, test_label, max_length_sample_inTest, train_dataset_with_no_paddding
-
