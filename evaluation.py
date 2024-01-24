@@ -1,5 +1,6 @@
 import torch
 from module.loss import Myloss
+import numpy as np
 # return the accuracy
 # todo return the F1 score, precision, and so on
 def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
@@ -9,7 +10,9 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
     FP = 0
     TN = 0
     FN = 0
-
+    
+    label_pred = []
+    label_true = []
     loss_function = Myloss()
     with torch.no_grad():
         model.eval()
@@ -25,6 +28,8 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
             # the data type of the last dimension is int
             # print("label_index:",label_index)
             # print('label_index.shape:',label_index.shape)
+
+
             total += label_index.shape[0]
             correct += (label_index == y.long()).sum().item()
             for i in range(label_index.shape[0]):
@@ -38,6 +43,9 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
                         FP += 1
                     elif label_index[i] == 0:
                         FN += 1
+            
+            label_true = np.concatenate((label_true, y.cpu().numpy()))
+            label_pred = np.concatenate((label_pred, label_index.cpu().numpy()))
         precision = TP / (TP + FP)
         recall =TP / (FN + TP)
         if(precision+recall != 0):
@@ -52,6 +60,6 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
         print(f'Metrix on {flag}, accuracy: %.2f %%' % (100 * correct / total) +" " + f'precision:  %.2f %%' % round(100*precision,2) + ' ' + f'recall: %.2f %%' % round(100*recall,2) +
               ' ' + f'F1 score: %.2f %%' % round(100*F1,2))
 
-        return round((100 * correct / total), 2), round(100*precision,2), round(100*recall,2), round(100*F1,2)
+        return round((100 * correct / total), 2), round(100*precision,2), round(100*recall,2), round(100*F1,2), label_pred, label_true
 
 
