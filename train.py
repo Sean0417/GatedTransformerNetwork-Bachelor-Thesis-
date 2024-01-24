@@ -9,6 +9,10 @@ from module.loss import Myloss
 import torch.optim as optim
 from evaluation import evaluation
 from tqdm import tqdm
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 class opt_and_cri_functions:
     def __init__(self,model,learningRate,optimizer_name):
         self.criterion = Myloss()
@@ -18,6 +22,40 @@ class opt_and_cri_functions:
             self.optimizer = optim.Adagrad(model.parameters(), lr = learningRate)
         elif optimizer_name == 'AdamW':
             self.optimizer = optim.AdamW(model.parameters(), lr = learningRate)
+
+def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
+    cm = confusion_matrix(y_true, y_pred)
+    # 计算混淆矩阵
+    cm = confusion_matrix(y_true, y_pred)
+
+    # 使用 seaborn 绘制热力图
+    plt.figure(figsize=(4, 4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
+
+    confusion_matrix_plt_dir = "confusion_matrix/"
+    if flag == "test_set":
+        if os.path.exists(confusion_matrix_plt_dir):
+            plt.savefig(confusion_matrix_plt_dir+"Test_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+        else:
+            os.makedirs(confusion_matrix_plt_dir)
+            plt.savefig(confusion_matrix_plt_dir+"Test_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+    elif flag == "train_set":
+        if os.path.exists(confusion_matrix_plt_dir):
+            plt.savefig(confusion_matrix_plt_dir+"Train_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+        else:
+            os.makedirs(confusion_matrix_plt_dir)
+            plt.savefig(confusion_matrix_plt_dir+"Train_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+    elif flag == "val_set":
+        if os.path.exists(confusion_matrix_plt_dir):
+            plt.savefig(confusion_matrix_plt_dir+"Val_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+        else:
+            os.makedirs(confusion_matrix_plt_dir)
+            plt.savefig(confusion_matrix_plt_dir+"Val_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
+
+
             
         
 
@@ -68,12 +106,16 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
         all_epoch_train_losses.append(epoch_train_loss)
         all_epoch_val_losses.append(epoch_val_loss)
 
-        epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1 = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
-        epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1 = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
-        epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1 = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1, epoch_train_label_pred, epoch_train_label_true = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
+        epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1, epoch_val_label_pred, epoch_val_label_true = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
+        epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, epoch_test_label_pred, epoch_test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        plot_Confusion_Matrix(epoch_test_label_true, epoch_test_label_pred, model_name="during_training_",flag="test_set")
+        plot_Confusion_Matrix(epoch_train_label_true, epoch_train_label_pred, model_name="during_training_",flag="train_set")
+        print("y_pred:",epoch_test_label_pred)
+        print("y_true:", epoch_test_label_true)
         
         wandb.log({"train_acc:": epoch_train_acc, 'train_precision':epoch_train_precision, "train_recall": epoch_train_recall, "train_F1": epoch_train_F1})
-        wandb.log({"val_acc:": epoch_val_acc, 'val_precision':epoch_val_precision, "train_recall": epoch_val_recall, "train_F1": epoch_val_F1})
+        wandb.log({"val_acc:": epoch_val_acc, 'val_precision':epoch_val_precision, "val_recall": epoch_val_recall, "val_F1": epoch_val_F1})
         wandb.log({"test_acc:": epoch_test_acc, 'test_precision':epoch_test_precision, "test_recall": epoch_test_recall, "test_F1": epoch_test_F1})
         all_epoch_train_accs.append(epoch_train_acc)
         all_epoch_val_accs.append(epoch_val_acc)
@@ -122,6 +164,9 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     torch.save(model.state_dict(),model_folder_directory+'/'+model_name+'.pkl')
     # load the last checkpoint with the best model
     model.load_state_dict(torch.load('checkpoint.pt'))
+    # confusion matrix for test set with best accuracy.
+    epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+    plot_Confusion_Matrix(test_label_true, test_label_pred, model_name)
 
 
     return model_name, model, all_epoch_train_losses, all_epoch_val_losses

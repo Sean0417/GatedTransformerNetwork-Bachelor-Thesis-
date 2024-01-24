@@ -54,10 +54,11 @@ def main(args):
     # split the data into train, validate and test
     train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
+    # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    val_loader = DataLoader(dataset=validate_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    # val_loader = DataLoader(dataset=validate_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    val_loader = test_loader
     # -------------------------------
     DATA_LEN = train_dataset.train_len  # 训练集样本数量
     d_input = train_dataset.input_len  # 时间部数量
@@ -85,11 +86,13 @@ def main(args):
         config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                       sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                       optimizer = optimizer_name, head_of_multi_attention=h)
+        print(config)
         wandb.init(project='GTNforEEG',
                 job_type="training",
                 config=config,
                 reinit=True,
                 )
+        # wandb.log({"sliding_window_size": sliding_window_length})
         # model initialization
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                     q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)

@@ -52,3 +52,5 @@ ENV/
 *.sublime-project
 
 data
+
+confusion_matrix
