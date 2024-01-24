@@ -206,6 +206,17 @@ class EEGDataset(Dataset):
         print("There are "+str(zeros)+" zeros. on "+flg+" set.")
         print("There are " + str(ones)+" ones. on"+ flg +" set.")
         return zeros, ones
+    def spllit_the_data_by_3_1(self, X:np.array,y:np.array, train_ratio=0.75):
+        arr_len = X.shape[0]
+        train_len = int(arr_len * train_ratio)
+
+        train_X = X[:train_len]
+        train_y = y[:train_len]
+
+        val_X = X[train_len:]
+        val_y = y[train_len:]
+
+        return train_X, train_y, val_X, val_y
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
@@ -251,16 +262,25 @@ class EEGDataset(Dataset):
 
         train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
         # balance the output of labels of 1 and zeros
-        train_zeros, train_oens = self.get_labels(train_dataset, train_label, flg="train")
-        train_dataset, train_label = self.balance_data(train_dataset, train_label)
+
         # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
         # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
         test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
         test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
         # test_dataset, test_label = self.balance_data(test_dataset, test_label)
+        
 
-        # split the data into training, validation and testset 
-
+        # ===================================================================================
+        # split the data into 3: 1 first and then split them 3:1 again, and at last concatenate them together
+        # train_x1, train_y1, val_x1, val_y1 = self.spllit_the_data_by_3_1(train_dataset, train_label)
+        # train_x2, train_y2, val_x2, val_y2 = self.spllit_the_data_by_3_1(test_dataset, test_label)
+        # train_zeros, train_oens = self.get_labels(train_dataset, train_label, flg="train")
+        # train_dataset = np.concatenate((train_x1, train_x2))
+        # train_label = np.concatenate((train_y1, train_y2))
+        # test_dataset = np.concatenate((val_x1, val_x2))
+        # test_label = np.concatenate((val_y1, val_y2))
+        train_dataset, train_label = self.balance_data(train_dataset, train_label)
+        # =========================================================================
         output_len = 2
         train_dataset_with_no_paddding = train_dataset
 

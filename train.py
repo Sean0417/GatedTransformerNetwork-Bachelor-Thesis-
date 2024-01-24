@@ -109,7 +109,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
         epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1, epoch_train_label_pred, epoch_train_label_true = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
         epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1, epoch_val_label_pred, epoch_val_label_true = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
         epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, epoch_test_label_pred, epoch_test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-        model_name_during_training = "during_epoch_"+"epoch_"+"exp_"+str(exp_index)+"_"+str(epoch)+"_"
+        model_name_during_training = "during_epoch_"+"exp_"+str(exp_index)+"_"+"epoch_"+str(epoch)+"_"
         plot_Confusion_Matrix(epoch_test_label_true, epoch_test_label_pred, model_name=model_name_during_training,flag="test_set")
         plot_Confusion_Matrix(epoch_train_label_true, epoch_train_label_pred, model_name=model_name_during_training,flag="train_set")
         print("y_pred:",epoch_test_label_pred)
@@ -166,8 +166,8 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     # load the last checkpoint with the best model
     model.load_state_dict(torch.load('checkpoint.pt'))
     # confusion matrix for test set with best accuracy.
-    test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-    train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader, DEVICE=DEVICE)
+    test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
+    train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
     plot_Confusion_Matrix(test_label_true, test_label_pred, model_name, flag="test_set")
     plot_Confusion_Matrix(train_label_true, train_label_pred, model_name, flag="train_set")
 
