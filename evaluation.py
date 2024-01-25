@@ -46,8 +46,16 @@ def evaluation(model,dataloader, DEVICE, flag = 'test_set'):
             
             label_true = np.concatenate((label_true, y.cpu().numpy()))
             label_pred = np.concatenate((label_pred, label_index.cpu().numpy()))
-        precision = TP / (TP + FP)
-        recall =TP / (FN + TP)
+        if TP+FP != 0:
+            precision = TP / (TP + FP)
+        else:
+            print("the denominator of the precision is 0, precision is set to 0.")
+            precision = 0
+        if FN+TP != 0:
+            recall =TP / (FN + TP)
+        else:
+            print("the denominator of the recall is 0, recall is set to 0")
+            recall = 0
         if(precision+recall != 0):
             F1 = (2*precision*recall)/(precision+recall)
         else:

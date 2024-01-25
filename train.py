@@ -25,19 +25,17 @@ class opt_and_cri_functions:
 
 def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
     cm = confusion_matrix(y_true, y_pred)
-    # 计算混淆矩阵
     cm = confusion_matrix(y_true, y_pred)
 
-    # 使用 seaborn 绘制热力图
     plt.figure(figsize=(4, 4))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.show()
 
-    confusion_matrix_plt_dir = "confusion_matrix/"
+    confusion_matrix_plt_dir = "3_1confusion_matrix/"
     if flag == "test_set":
-        if os.path.exists(confusion_matrix_plt_dir):
+        if os.path.exists(confusion_matrix_plt_dir)==False:
+            os.makedirs(confusion_matrix_plt_dir)
             plt.savefig(confusion_matrix_plt_dir+"Test_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
         else:
             os.makedirs(confusion_matrix_plt_dir)
@@ -54,9 +52,6 @@ def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
         else:
             os.makedirs(confusion_matrix_plt_dir)
             plt.savefig(confusion_matrix_plt_dir+"Val_set_confusionMatrix_"+model_name+'.png',format='png',dpi= 200)
-
-
-            
         
 
 def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name):
@@ -108,15 +103,22 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
 
         epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1, epoch_train_label_pred, epoch_train_label_true = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
         epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1, epoch_val_label_pred, epoch_val_label_true = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
-        epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, epoch_test_label_pred, epoch_test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        
         model_name_during_training = "during_epoch_"+"exp_"+str(exp_index)+"_"+"epoch_"+str(epoch)+"_"
-        plot_Confusion_Matrix(epoch_test_label_true, epoch_test_label_pred, model_name=model_name_during_training,flag="test_set")
         plot_Confusion_Matrix(epoch_train_label_true, epoch_train_label_pred, model_name=model_name_during_training,flag="train_set")
-        print("y_pred:",epoch_test_label_pred)
-        print("y_true:", epoch_test_label_true)
+        plot_Confusion_Matrix(epoch_val_label_true, epoch_val_label_pred, model_name=model_name_during_training,flag="test_set")
         
         wandb.log({"train_acc:": epoch_train_acc, 'train_precision':epoch_train_precision, "train_recall": epoch_train_recall, "train_F1": epoch_train_F1})
         wandb.log({"val_acc:": epoch_val_acc, 'val_precision':epoch_val_precision, "val_recall": epoch_val_recall, "val_F1": epoch_val_F1})
+       
+
+        epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, epoch_test_label_pred, epoch_test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        
+        plot_Confusion_Matrix(epoch_test_label_true, epoch_test_label_pred, model_name=model_name_during_training,flag="test_set")
+       
+        print("y_pred:",epoch_test_label_pred)
+        print("y_true:", epoch_test_label_true)
+        
         wandb.log({"test_acc:": epoch_test_acc, 'test_precision':epoch_test_precision, "test_recall": epoch_test_recall, "test_F1": epoch_test_F1})
         all_epoch_train_accs.append(epoch_train_acc)
         all_epoch_val_accs.append(epoch_val_acc)

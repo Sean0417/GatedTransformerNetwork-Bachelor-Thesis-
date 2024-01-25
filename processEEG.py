@@ -217,6 +217,29 @@ class EEGDataset(Dataset):
         val_y = y[train_len:]
 
         return train_X, train_y, val_X, val_y
+    def get_ones_zeros(self, X:np.array,y:np.array):
+        # get the number of the 1s and 0s
+        ones = 0
+        zeros = 0
+        _X_label_zero = []
+        _y1 = []
+        _y0 = []
+        _X_label_one = []
+        for i in range(y.shape[0]):
+            if y[i] == 0:
+                zeros += 1
+                _X_label_zero.append(X[i])
+                _y0.append(int(y[i]))
+            elif y[i] == 1:
+                ones += 1
+                _X_label_one.append(X[i])
+                _y1.append(int(y[i])) 
+        _X_label_zero = np.array(_X_label_zero)
+        _y0 = np.array(_y0)
+        _X_label_one = np.array(_X_label_one)
+        _y1 = np.array(_y1)
+        return _X_label_zero, _y0, _X_label_one, _y1, zeros, ones
+
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
         train_percentage = train_percentage
@@ -235,52 +258,84 @@ class EEGDataset(Dataset):
 
         arr_filtered1 = np.array(df_filtered1)
         arr_len = arr_filtered1.shape[0]
+        # ==============================
+        dataset, label = self.slide_data_with_slidingWindow(arr_filtered1, sliding_window_length=sliding_window_length)
+        X0, y0, X1, y1, zeros, ones= self.get_ones_zeros(dataset, label)
+        x0_train, y0_train, x0_test, y0_test = self.spllit_the_data_by_3_1(X0,y0)
+        x1_train, y1_train, x1_test, y1_test = self.spllit_the_data_by_3_1(X1,y1)
+        print(x0_train.shape)
+        print(x1_train.shape)
+        X_train = np.concatenate((x0_train,x1_train))
+        y_train = np.concatenate((y0_train, y1_train))
+        X_train, y_train = self.balance_data(X_train, y_train)
+        X_test = np.concatenate((x0_test,x1_test))
+        y_test = np.concatenate((y0_test,y1_test))
 
-        train_size = int(train_percentage*arr_len)
-        val_size = int(validate_percentage*arr_len)
-        test_size = arr_len - train_size - val_size
 
-        train_data = arr_filtered1[:train_size,:]
-        val_data = arr_filtered1[train_size:train_size+val_size,:]
-        test_data = arr_filtered1[train_size+val_size:,:]
+        # min-max normalization
+        X_train = np.reshape(X_train, (-1, 14))
+        X_test = np.reshape(X_test, (-1, 14))
+        min_train = np.min(X_train, axis=0)
+        max_train = np.max(y_train, axis=0)
+        normalized_train_data = (X_train - min_train) / (max_train - min_train)
+        normalized_test_data = (X_test - min_train) / (max_train - min_train)
+        
+        normalized_test_data = np.reshape(normalized_test_data, (-1,sliding_window_length,14))
+        normalized_train_data = np.reshape(normalized_train_data, (-1,sliding_window_length, 14))
+        
+        
+        train_dataset = normalized_train_data
+        train_label = y_train
+        test_dataset = normalized_test_data
+        test_label = y_test
 
-        # calculate the max and min value of the train data
-        min_train_val = train_data[:,0:14].min(axis=0)
-        max_train_val = train_data[:,0:14].max(axis=0)
+        # ==============================
 
-        min_test_val = test_data[:,0:14].min(axis=0)
-        max_test_val = test_data[:,0:14].max(axis=0)
-        # print("min_test:",min_test_val)
-        # print("max_test:",max_test_val)
+        # train_size = int(train_percentage*arr_len)
+        # val_size = int(validate_percentage*arr_len)
+        # test_size = arr_len - train_size - val_size
 
-        # min_validate_val = val_data[:,0:14].min(axis=0)
-        # max_validate_val = val_data[:,0:14].max(axis=0)
+        # train_data = arr_filtered1[:train_size,:]
+        # val_data = arr_filtered1[train_size:train_size+val_size,:]
+        # test_data = arr_filtered1[train_size+val_size:,:]
 
-        normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
-        # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
-        normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
+        # # calculate the max and min value of the train data
+        # min_train_val = train_data[:,0:14].min(axis=0)
+        # max_train_val = train_data[:,0:14].max(axis=0)
 
-        train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
-        # balance the output of labels of 1 and zeros
+        # min_test_val = test_data[:,0:14].min(axis=0)
+        # max_test_val = test_data[:,0:14].max(axis=0)
+        # # print("min_test:",min_test_val)
+        # # print("max_test:",max_test_val)
 
-        # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
-        # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
-        test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
-        test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
-        # test_dataset, test_label = self.balance_data(test_dataset, test_label)
+        # # min_validate_val = val_data[:,0:14].min(axis=0)
+        # # max_validate_val = val_data[:,0:14].max(axis=0)
+
+        # normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
+        # # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
+        # normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
+
+        # train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
+        # # balance the output of labels of 1 and zeros
+
+        # # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
+        # # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
+        # test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
+        # test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
+        # # test_dataset, test_label = self.balance_data(test_dataset, test_label)
         
 
-        # ===================================================================================
-        # split the data into 3: 1 first and then split them 3:1 again, and at last concatenate them together
-        # train_x1, train_y1, val_x1, val_y1 = self.spllit_the_data_by_3_1(train_dataset, train_label)
-        # train_x2, train_y2, val_x2, val_y2 = self.spllit_the_data_by_3_1(test_dataset, test_label)
-        # train_zeros, train_oens = self.get_labels(train_dataset, train_label, flg="train")
-        # train_dataset = np.concatenate((train_x1, train_x2))
-        # train_label = np.concatenate((train_y1, train_y2))
-        # test_dataset = np.concatenate((val_x1, val_x2))
-        # test_label = np.concatenate((val_y1, val_y2))
-        train_dataset, train_label = self.balance_data(train_dataset, train_label)
-        # =========================================================================
+        # # ===================================================================================
+        # # split the data into 3: 1 first and then split them 3:1 again, and at last concatenate them together
+        # # train_x1, train_y1, val_x1, val_y1 = self.spllit_the_data_by_3_1(train_dataset, train_label)
+        # # train_x2, train_y2, val_x2, val_y2 = self.spllit_the_data_by_3_1(test_dataset, test_label)
+        # # train_zeros, train_oens = self.get_labels(train_dataset, train_label, flg="train")
+        # # train_dataset = np.concatenate((train_x1, train_x2))
+        # # train_label = np.concatenate((train_y1, train_y2))
+        # # test_dataset = np.concatenate((val_x1, val_x2))
+        # # test_label = np.concatenate((val_y1, val_y2))
+        # train_dataset, train_label = self.balance_data(train_dataset, train_label)
+        # # =========================================================================
         output_len = 2
         train_dataset_with_no_paddding = train_dataset
 
