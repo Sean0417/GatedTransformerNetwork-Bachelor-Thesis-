@@ -13,7 +13,11 @@ from train import training_validation
 from plot import plot_learning_curve
 from evaluation import evaluation
 from utils.random_seed import setup_seed
+from evaluation import evaluation
+from plot import plot_Confusion_Matrix
+from final_test import test
 # setup_seed(30)
+
 def main(args):
     # 1. data preprocessing
     path = args.path
@@ -21,7 +25,7 @@ def main(args):
     model_folder_dir= args.model_folder_dir
     is_train = args.is_train
     print(args.is_train)
-    test_model = args.test_model
+    # test_model = args.test_model
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
@@ -59,9 +63,8 @@ def main(args):
     test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    # val_loader = DataLoader(dataset=validate_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    val_loader = test_loader
+    val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
     # -------------------------------
     DATA_LEN = train_dataset.train_len  # 训练集样本数量
     d_input = train_dataset.input_len  # 时间部数量
@@ -79,7 +82,6 @@ def main(args):
     # 创建Transformer模型
     # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
     #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    
 
     if is_train == True:
         print("===================train and validation====================")
@@ -90,7 +92,7 @@ def main(args):
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
             print(config)
-            wandb.init(project='GTNforEEG',
+            wandb.init(project='GTNforEEG2',
                     job_type="training",
                     config=config,
                     reinit=True,
@@ -99,44 +101,66 @@ def main(args):
             model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                         q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
             wandb.watch(model,log="all")
-            model_name, model, all_epoch_train_loss, all_epoch_val_loss=training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
+            model = training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
                                                                                             val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
                                                                                             model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
-        
+            # confusion matrix for test set with best accuracy.
+            # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
+            # train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
+            # wandb.log({"exp_test_acc":test_acc, "exp_test_precision": test_precision, "exp_text_recall": test_recall, "exp_test_F1":test_F1})
+            # wandb.log({"exp_train_acc":test_acc, "exp_train_precision": test_precision, "exp_train_recall": test_recall, "exp_train_F1":test_F1})
             # plot the learning curve
-            plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=plot_folder_dir,model_name=model_name)
-        
-
-            print("round"+str(exp_idx+1)+" has been done")
+            # plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=plot_folder_dir,model_name=model_name)
+            # print("round"+str(exp_idx+1)+" has been done")
     else:
-        model =  model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+        config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
+                        sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
+                        optimizer = optimizer_name, head_of_multi_attention=h)
+        wandb.init(project='GTNforEEG2',
+        job_type="test",
+        config=config,
+        reinit=True,
+        )
+        model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+        model.load_state_dict(torch.load(args.given_best_model_path))
 
-
-
-
-    # 3. evaluation test sets with accuracy, precision, F1 score and AUC
-    if is_train == True:
-        # first set the best loss to infinity
-        best_test_loss= float('inf')
-        best_test_loss_model=''
-
-        # use tqdm to beautify the output
-        for file in tqdm(os.listdir(args.model_folder_dir),unit="model file"):
-            targets, predictions, test_loss = evaluation(model=model,test_loader=test_loader,lossfunction=args.lossfunction, model_filepath=args.model_folder_dir+'/'+file)
-            if test_loss < best_test_loss:
-                best_test_loss = test_loss
-                best_test_loss_model = file.split('.')[0]
-                targets_best = targets
-                predictions_best =predictions
-            else:
-                pass
-    else:
-        model
-        evaluation(model=model, dataloader=test_loader, DEVICE=DEVICE, flag='test set')
+    # execute testing
+    test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+    plot_Confusion_Matrix(test_label_true, test_label_pred, "test", flag="test_set")
     
-    # 4. plot
-        
+
+    # model =  
+
+    # best_test_loss= float('inf')
+    # best_test_loss_model=''
+
+    
+    # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
+    # plot_Confusion_Matrix(test_label_true, test_label_pred, model_name, flag="test_set")
+
+    # # use tqdm to beautify the output
+    # for file in tqdm(os.listdir(args.model_folder_dir),unit="model file"):
+    #     targets, predictions, test_loss = evaluation(model=model,test_loader=test_loader,lossfunction=args.lossfunction, model_filepath=args.model_folder_dir+'/'+file)
+    #     if test_loss < best_test_loss:
+    #         best_test_loss = test_loss
+    #         best_test_loss_model = file.split('.')[0]
+    #         targets_best = targets
+    #         predictions_best =predictions
+    #     else:
+    #         pass
+
+
+    # # 3. evaluation test sets with accuracy, precision, F1 score and AUC
+    # if is_train == True:
+    #     # first set the best loss to infinity
+       
+    # else:
+    #     model.load_state_dict(test_model)
+    #     test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
+    #     plot_Confusion_Matrix(test_label_true, test_label_pred, model_name, flag="test_set")
+    #     plot_Confusion_Matrix(train_label_true, train_label_pred, model_name, flag="train_set")
+    
+    # # 4. plot
 
 
 if __name__ == "__main__":
@@ -160,7 +184,7 @@ if __name__ == "__main__":
     parser.add_argument('--sliding_window_length', type=int, required=True, help="The length of sliding window when spliting the data")
     parser.add_argument('--optimizer_name',type=str, required=True, default='Adagrad', help="The name of the optimizer")
     parser.add_argument('--is_train',action="store_true",help="parameter to determine whether run training cycle or not")
-    parser.add_argument('--test_model', type=str, required=False, help="the model directory used for testing")
+    parser.add_argument('--given_best_model_path', type=str, required=False, help="the model directory used for testing")
     parser.add_argument('--num_exps', type=int, required=True, help="The quantity of the experiments")
     args = parser.parse_args()
-    main(args=args)
+    main(args)
