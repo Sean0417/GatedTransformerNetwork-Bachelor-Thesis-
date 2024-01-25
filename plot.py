@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import wandb
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 def plot_learning_curve(train_loss, val_loss, plot_folder_dir, model_name):
     # visualize the loss as the network trained
     plt.figure()
@@ -52,3 +55,19 @@ def plot_prediction_curve(y, y_predict, test_loss,plot_folder_dir,is_train,test_
 
     # wandb.log({"plot_prediction_curve":wandb.Plotly(plt.gcf())}) # print the plot of the prediction curve on wandb
     plt.close()
+
+def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
+    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred)
+
+    plt.figure(figsize=(4, 4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+
+    plot_folder_dir = "3_1confusion_matrix/"
+    if os.path.exists(plot_folder_dir):
+        plt.savefig(plot_folder_dir+'/'+"learning_curve_"+model_name+'.png',format='png',dpi= 200)
+    else:
+        os.makedirs(plot_folder_dir)
+        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+model_name+'.png',format='png',dpi= 200)
