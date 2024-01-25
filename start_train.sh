@@ -19,7 +19,7 @@ dropout=0.2
 sliding_window_length=128
 optimizer_name='AdamW'
 num_exps=1
-is_train=false
+is_train=true
 given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/after_earlyStopping_20240124_163141_2.pkl"
 
 if [ "$is_train" = true ]; then

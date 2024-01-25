@@ -10,12 +10,10 @@ from module.transformer import Transformer
 from module.loss import Myloss
 from processEEG import EEGDataset
 from train import training_validation
-from plot import plot_learning_curve
 from evaluation import evaluation
 from utils.random_seed import setup_seed
 from evaluation import evaluation
 from plot import plot_Confusion_Matrix
-from final_test import test
 # setup_seed(30)
 
 def main(args):

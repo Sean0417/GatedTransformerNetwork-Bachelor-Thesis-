@@ -259,7 +259,7 @@ class EEGDataset(Dataset):
         arr_filtered1 = np.array(df_filtered1)
         arr_len = arr_filtered1.shape[0]
 
-        
+
         # ==============================
         # dataset, label = self.slide_data_with_slidingWindow(arr_filtered1, sliding_window_length=sliding_window_length)
         # X0, y0, X1, y1, zeros, ones= self.get_ones_zeros(dataset, label)
@@ -292,6 +292,7 @@ class EEGDataset(Dataset):
         # test_label = y_test
 
         # ==============================
+        # ==============method 1=========
 
         train_size = int(train_percentage*arr_len)
         val_size = int(validate_percentage*arr_len)
@@ -305,14 +306,6 @@ class EEGDataset(Dataset):
         min_train_val = train_data[:,0:14].min(axis=0)
         max_train_val = train_data[:,0:14].max(axis=0)
 
-        min_test_val = test_data[:,0:14].min(axis=0)
-        max_test_val = test_data[:,0:14].max(axis=0)
-        # print("min_test:",min_test_val)
-        # print("max_test:",max_test_val)
-
-        # min_validate_val = val_data[:,0:14].min(axis=0)
-        # max_validate_val = val_data[:,0:14].max(axis=0)
-
         normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
         # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
         normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
@@ -325,7 +318,7 @@ class EEGDataset(Dataset):
         test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
         test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
         # test_dataset, test_label = self.balance_data(test_dataset, test_label)
-        
+        # ===========================================
 
         output_len = 2
         train_dataset_with_no_paddding = train_dataset
