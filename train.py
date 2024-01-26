@@ -101,7 +101,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
 
         # print epoch loss, acc
         epoch_len = len(str(epoch_sum))
-        print_msg = (f'round:{exp_index+1}:[{epoch:>{epoch_len}}/{epoch_sum::>{epoch_len}}]'+
+        print_msg = (f'round:{exp_index+1}:[{epoch:>{epoch_len}}/{epoch_sum::>{epoch_len}}   learning_rate={learning_rate}]'+
                     f'train_loss:{epoch_train_loss:.5f}' + " " + 'validation_loss'+f':{epoch_val_loss:.5f}',
                     f'train_acc:{epoch_train_acc:.5f}' + " " + 'validation_acc'+f':{epoch_val_acc:.5f}',
                      )
