@@ -90,7 +90,7 @@ def main(args):
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
             print(config)
-            wandb.init(project='GTNforEEG2',
+            wandb.init(project='GTNforEEG3',
                     job_type="training",
                     config=config,
                     reinit=True,
@@ -100,8 +100,12 @@ def main(args):
                         q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
             wandb.watch(model,log="all")
             model = training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
-                                                                                            val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
-                                                                                            model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
+                                    val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
+                                    model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
+        # execute testing
+        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        plot_Confusion_Matrix(test_label_true, test_label_pred, flag="test_set")
+            
             # confusion matrix for test set with best accuracy.
             # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
             # train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
@@ -114,17 +118,17 @@ def main(args):
         config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
-        wandb.init(project='GTNforEEG2',
+        wandb.init(project='GTNforEEG3',
         job_type="test",
         config=config,
         reinit=True,
         )
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
         model.load_state_dict(torch.load(args.given_best_model_path))
-
-    # execute testing
-    test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-    plot_Confusion_Matrix(test_label_true, test_label_pred, "test", flag="test_set")
+        # execute testing
+        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        plot_Confusion_Matrix(test_label_true, test_label_pred, "test", flag="test_set")
+        
     
 
     # model =  
