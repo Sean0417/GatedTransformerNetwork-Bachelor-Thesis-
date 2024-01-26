@@ -90,7 +90,7 @@ def main(args):
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
             print(config)
-            wandb.init(project='GTNforEEG3',
+            wandb.init(project='GTNforEEG2',
                     job_type="training",
                     config=config,
                     reinit=True,

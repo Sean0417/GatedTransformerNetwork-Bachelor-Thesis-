@@ -2,11 +2,11 @@ source venv/bin/activate
 path='EEG_Eye_State_Classification.csv'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=5
+EPOCH=100
 BATCH_SIZE=32
 
-LR=1e-4
-patience=10
+LR=1e-5
+patience=7
 train_percentage=0.75
 validate_percentage=0
 d_model=512
@@ -16,9 +16,9 @@ v=8
 head=8
 N=8
 dropout=0.2
-sliding_window_length=128
+sliding_window_length=21
 optimizer_name='AdamW'
-num_exps=1
+num_exps=50
 is_train=true
 given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/after_earlyStopping_20240124_163141_2.pkl"
 

@@ -43,8 +43,8 @@ def evaluation(model, dataloader, DEVICE):
             # label_pred = np.concatenate((label_pred, label_index.cpu().numpy()))
             label_pred.append(label_index.cpu().numpy()[0])
             label_true.append(y.cpu().numpy()[0])
-        print(label_pred)
-        print(label_true)
+        # print(label_pred)
+        # print(label_true)
 
         if TP+FP != 0:
             precision = TP / (TP + FP)
@@ -66,10 +66,6 @@ def evaluation(model, dataloader, DEVICE):
         test_precision = round(100*precision,2)
         test_recall = round(100*recall,2)
         test_f1_score = round(100*F1,2)
-        print(test_acc)
-        print(test_precision)
-        print(test_f1_score)
-        print(test_recall)
 
         print(f'Test accuracy: %.2f %%' % (test_acc) +" " + f'precision:  %.2f %%' % (test_precision) + ' ' + f'recall: %.2f %%' % (test_recall) +
               ' ' + f'F1 score: %.2f %%' % (test_f1_score))

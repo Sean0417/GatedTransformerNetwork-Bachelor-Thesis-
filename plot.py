@@ -5,6 +5,7 @@ import wandb
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 def plot_learning_curve(train_loss, val_loss, plot_folder_dir, model_name):
     # visualize the loss as the network trained
     plt.figure()
