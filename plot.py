@@ -56,7 +56,7 @@ def plot_prediction_curve(y, y_predict, test_loss,plot_folder_dir,is_train,test_
     # wandb.log({"plot_prediction_curve":wandb.Plotly(plt.gcf())}) # print the plot of the prediction curve on wandb
     plt.close()
 
-def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
+def plot_Confusion_Matrix(y_true, y_pred, flag="test_set"):
     cm = confusion_matrix(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
 
@@ -66,8 +66,10 @@ def plot_Confusion_Matrix(y_true, y_pred, model_name, flag="test_set"):
     plt.ylabel('True')
 
     plot_folder_dir = "3_1confusion_matrix/"
+
+    plot_time = time.strftime("%Y%m%d_%H%M%S")
     if os.path.exists(plot_folder_dir):
-        plt.savefig(plot_folder_dir+'/'+"learning_curve_"+model_name+'.png',format='png',dpi= 200)
+        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+plot_time+'.png',format='png',dpi= 200)
     else:
         os.makedirs(plot_folder_dir)
-        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+model_name+'.png',format='png',dpi= 200)
+        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+plot_time+'.png',format='png',dpi= 200)
