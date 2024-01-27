@@ -119,7 +119,8 @@ class EEGDataset(Dataset):
                             flag = row + boundary_indices[0]
 
                             break
-
+                        flag = row + sliding_window_length
+                        break
 
 
 
@@ -206,7 +207,7 @@ class EEGDataset(Dataset):
         print("There are "+str(zeros)+" zeros. on "+flg+" set.")
         print("There are " + str(ones)+" ones. on"+ flg +" set.")
         return zeros, ones
-    def spllit_the_data_by_3_1(self, X:np.array,y:np.array, train_ratio=0.75):
+    def spllit_the_data_by_3_1(self, X:np.array,y:np.array, train_ratio):
         arr_len = X.shape[0]
         train_len = int(arr_len * train_ratio)
 
@@ -239,6 +240,21 @@ class EEGDataset(Dataset):
         _X_label_one = np.array(_X_label_one)
         _y1 = np.array(_y1)
         return _X_label_zero, _y0, _X_label_one, _y1, zeros, ones
+    def standardize_except_last_dimension(self,mean, std, data):
+        # 提取除最后一个维度之外的所有维度
+        features = data[:, :-1]
+        
+        # # 计算均值和标准差
+        # mean = np.mean(features, axis=0)
+        # std = np.std(features, axis=0)
+        
+        # 标准化除最后一个维度之外的所有维度
+        standardized_features = (features - mean) / std
+        
+        # 将标准化后的特征和原始的最后一个维度重新组合
+        standardized_data = np.column_stack((standardized_features, data[:, -1]))
+        
+        return standardized_data
 
     
     def pre_option(self, path: str, train_percentage: float, validate_percentage: float, sliding_window_length:int):
@@ -263,8 +279,8 @@ class EEGDataset(Dataset):
         # ==============================
         # dataset, label = self.slide_data_with_slidingWindow(arr_filtered1, sliding_window_length=sliding_window_length)
         # X0, y0, X1, y1, zeros, ones= self.get_ones_zeros(dataset, label)
-        # x0_train, y0_train, x0_test, y0_test = self.spllit_the_data_by_3_1(X0,y0)
-        # x1_train, y1_train, x1_test, y1_test = self.spllit_the_data_by_3_1(X1,y1)
+        # x0_train, y0_train, x0_test, y0_test = self.spllit_the_data_by_3_1(X0,y0, train_percentage)
+        # x1_train, y1_train, x1_test, y1_test = self.spllit_the_data_by_3_1(X1,y1, train_percentage)
         # print(x0_train.shape)
         # print(x1_train.shape)
         # X_train = np.concatenate((x0_train,x1_train))
@@ -275,22 +291,53 @@ class EEGDataset(Dataset):
 
 
         # # min-max normalization
-        # X_train = np.reshape(X_train, (-1, 14))
-        # X_test = np.reshape(X_test, (-1, 14))
-        # min_train = np.min(X_train, axis=0)
-        # max_train = np.max(y_train, axis=0)
-        # normalized_train_data = (X_train - min_train) / (max_train - min_train)
-        # normalized_test_data = (X_test - min_train) / (max_train - min_train)
+        # # X_train = np.reshape(X_train, (-1, 14))
+        # # X_test = np.reshape(X_test, (-1, 14))
+        # # min_train = np.min(X_train, axis=0)
+        # # max_train = np.max(X_train, axis=0)
+        # # print(min_train)
+        # # print(max_train)
+        # # normalized_train_data = (X_train - min_train) / (max_train - min_train)
+        # # normalized_test_data = (X_test - min_train) / (max_train - min_train)
         
-        # normalized_test_data = np.reshape(normalized_test_data, (-1,sliding_window_length,14))
-        # normalized_train_data = np.reshape(normalized_train_data, (-1,sliding_window_length, 14))
+        # # normalized_test_data = np.reshape(normalized_test_data, (-1,sliding_window_length,14))
+        # # normalized_train_data = np.reshape(normalized_train_data, (-1,sliding_window_length, 14))
         
-        
+        # # Reshape 数据为二维数组
+        # X_train_flat = np.reshape(X_train, (-1, 14))
+        # X_test_flat = np.reshape(X_test, (-1, 14))
+
+        # # 计算训练集中每个特征的最小值和最大值
+        # min_train = np.min(X_train_flat, axis=0)
+        # max_train = np.max(X_train_flat, axis=0)
+
+        # # 将为零的行排除在标准化计算之外
+        # nonzero_rows_train = np.all(X_train_flat != 0, axis=1)
+        # nonzero_rows_test = np.all(X_test_flat != 0, axis=1)
+
+        # # 进行 min-max 标准化，仅对非零行进行标准化
+        # normalized_train_data = np.zeros_like(X_train_flat)
+        # normalized_train_data[nonzero_rows_train, :] = (X_train_flat[nonzero_rows_train, :] - min_train) / (max_train - min_train)
+
+        # normalized_test_data = np.zeros_like(X_test_flat)
+        # normalized_test_data[nonzero_rows_test, :] = (X_test_flat[nonzero_rows_test, :] - min_train) / (max_train - min_train)
+
+        # # 将数据恢复为原始形状
+        # normalized_train_data = np.reshape(normalized_train_data, X_train.shape)
+        # normalized_test_data = np.reshape(normalized_test_data, X_test.shape)
+
+        # # 输出最小值和最大值以及标准化后的数据
+        # print("Min values:", min_train)
+        # print("Max values:", max_train)
+        # print("Normalized train data:", normalized_train_data)
+        # print("Normalized test data:", normalized_test_data)
+
         # train_dataset = normalized_train_data
         # train_label = y_train
         # test_dataset = normalized_test_data
         # test_label = y_test
-
+        # print("train_Data",train_dataset)
+        # print("test_Data:",test_dataset)
         # ==============================
         # ==============method 1=========
 
@@ -306,20 +353,39 @@ class EEGDataset(Dataset):
         min_train_val = train_data[:,0:14].min(axis=0)
         max_train_val = train_data[:,0:14].max(axis=0)
 
-        normalized_train_arr = self.min_max_normalization(min_train_val, max_train_val, train_data)
-        # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
-        normalized_test_arr = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
-        train_dataset, train_label = self.slide_data_with_slidingWindow(normalized_train_arr, sliding_window_length)
+
+        # 提取除最后一个维度之外的所有维度
+        features = train_data[:, :-1]
+        
+        # 计算均值和标准差
+        mean = np.mean(features, axis=0)
+        std = np.std(features, axis=0)
+        train_data = self.standardize_except_last_dimension(mean, std, train_data)
+        test_data = self.standardize_except_last_dimension(mean, std, test_data)
+
+
+
+        # train_data = self.min_max_normalization(min_train_val, max_train_val, train_data)
+        # # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
+        # test_data = self.min_max_normalization(min_train_val, max_train_val, test_data)
+
+        train_dataset, train_label = self.slide_data_with_slidingWindow(train_data, sliding_window_length)
+        self.get_labels(train_dataset, train_label)
         # balance the output of labels of 1 and zeros
-
+        train_dataset, train_label = self.balance_data(train_dataset, train_label)
+        self.get_labels(train_dataset, train_label)
         # validate_dataset, validate_label = self.slide_data_with_slidingWindow(normalized_validate_arr, sliding_window_length=sliding_window_length)
         # validate_dataset, validate_label = self.balance_data(validate_dataset, validate_label)
-        test_dataset, test_label = self.slide_data_with_slidingWindow(normalized_test_arr,sliding_window_length=sliding_window_length)
+        test_dataset, test_label = self.slide_data_with_slidingWindow(test_data,sliding_window_length=sliding_window_length)
         test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
         # test_dataset, test_label = self.balance_data(test_dataset, test_label)
+        print("normalized_train_arr:",train_dataset)
+        print("normalized_train_arr.shape",train_dataset.shape)
+        print("normalized_test_arr:", test_dataset)
+        print("normalized_test_data.shape:", test_dataset.shape)
         # ===========================================
-
+   
         output_len = 2
         train_dataset_with_no_paddding = train_dataset
 

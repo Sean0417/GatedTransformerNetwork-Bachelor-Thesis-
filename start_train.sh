@@ -1,11 +1,11 @@
 source venv/bin/activate
-path='EEG_Eye_State_Classification.csv'
+path='dataset/CharacterTrajectories.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
-BATCH_SIZE=32
+EPOCH=50
+BATCH_SIZE=3
 
-LR=1e-5
+LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
@@ -18,9 +18,9 @@ N=8
 dropout=0.2
 sliding_window_length=21
 optimizer_name='AdamW'
-num_exps=50
+num_exps=1
 is_train=true
-given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/after_earlyStopping_20240124_163141_2.pkl"
+given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/2024-01-27-12-49-42_checkpoint.pth"
 
 if [ "$is_train" = true ]; then
     echo 'training, validation and test'

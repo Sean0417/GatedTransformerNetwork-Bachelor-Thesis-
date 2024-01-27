@@ -117,6 +117,8 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
             print("Early stopping")
             break
 
+    model.load_state_dict(torch.load(best_model_path))
+
         # all_epoch_train_losses.append(epoch_train_loss)
         # all_epoch_train_accs.append(epoch_train_acc)
         # all_epoch_val_losses.append(epoch_val_loss)
