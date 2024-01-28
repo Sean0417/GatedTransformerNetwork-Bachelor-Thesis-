@@ -15,7 +15,7 @@ from utils.random_seed import setup_seed
 from evaluation import evaluation
 from plot import plot_Confusion_Matrix
 from dataset_process import MyDataset
-from test import EEGDataset
+# from test import EEGDatase
 # setup_seed(30)
 
 def main(args):
@@ -59,18 +59,18 @@ def main(args):
     optimizer_name = args.optimizer_name
 
     # split the data into train, validate and test
-    train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
-    # =================datasets in GTN=========================================
-    # train_dataset = MyDataset(path, 'train')
-    # test_dataset = MyDataset(path, 'test')
+    # train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
+    # test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
+    # # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     # train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     # val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
     # test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+    # =================datasets in GTN=========================================
+    train_dataset = MyDataset(path, 'train')
+    test_dataset = MyDataset(path, 'test')
+    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
     
     # -------------------------------
     DATA_LEN = train_dataset.train_len  # 训练集样本数量
@@ -99,7 +99,7 @@ def main(args):
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
             print(config)
-            wandb.init(project='GTNforEEG2',
+            wandb.init(project=file_name,
                     job_type="training",
                     config=config,
                     reinit=True,
@@ -113,7 +113,7 @@ def main(args):
                                                                                             model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
         # execute testing
         test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-        plot_Confusion_Matrix(test_label_true, test_label_pred, flag="test_set")
+        plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
             # confusion matrix for test set with best accuracy.
             # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
             # train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
@@ -126,7 +126,7 @@ def main(args):
         config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h)
-        wandb.init(project='GTNforEEG2',
+        wandb.init(project=file_name,
         job_type="test",
         config=config,
         reinit=True,
@@ -135,7 +135,7 @@ def main(args):
         model.load_state_dict(torch.load(args.given_best_model_path))
         # execute testing
         test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-        plot_Confusion_Matrix(test_label_true, test_label_pred, flag="test_set")
+        plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
     
     
 

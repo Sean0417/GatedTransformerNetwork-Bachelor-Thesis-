@@ -125,21 +125,21 @@ class EEGDataset(Dataset):
 
 
             else:
-                for row in range(flag, arr_len):
-                    _X = data[row,0:14]
-                    _y = data[row,14]
+                # for row in range(flag, arr_len):
+                #     _X = data[row,0:14]
+                #     _y = data[row,14]
 
-                    # padding 0
-                    zero_array = np.zeros(14)
-                    zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
-                    zero_array_list = np.vstack(zero_array_list)
-                    _X = np.array([_X])
-                    _X = np.concatenate((_X, zero_array_list), axis=0)
+                #     # padding 0
+                #     zero_array = np.zeros(14)
+                #     zero_array_list = np.tile(zero_array, (sliding_window_length-1,1))
+                #     zero_array_list = np.vstack(zero_array_list)
+                #     _X = np.array([_X])
+                #     _X = np.concatenate((_X, zero_array_list), axis=0)
                     
-                    X.append(_X)
-                    y.append(_y)
+                #     X.append(_X)
+                #     y.append(_y)
 
-                    record_row = row
+                #     record_row = row
                 break
         
         X = np.array(X)
@@ -355,20 +355,20 @@ class EEGDataset(Dataset):
 
 
 
-        # 提取除最后一个维度之外的所有维度
-        features = train_data[:, :-1]
+        # # 提取除最后一个维度之外的所有维度
+        # features = train_data[:, :-1]
         
-        # 计算均值和标准差
-        mean = np.mean(features, axis=0)
-        std = np.std(features, axis=0)
-        train_data = self.standardize_except_last_dimension(mean, std, train_data)
-        test_data = self.standardize_except_last_dimension(mean, std, test_data)
+        # # 计算均值和标准差
+        # mean = np.mean(features, axis=0)
+        # std = np.std(features, axis=0)
+        # train_data = self.standardize_except_last_dimension(mean, std, train_data)
+        # test_data = self.standardize_except_last_dimension(mean, std, test_data)
 
 
 
-        # train_data = self.min_max_normalization(min_train_val, max_train_val, train_data)
-        # # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
-        # test_data = self.min_max_normalization(min_train_val, max_train_val, test_data)
+        train_data = self.min_max_normalization(min_train_val, max_train_val, train_data)
+        # normalized_validate_arr = self.min_max_normalization(min_train_val, max_train_val, val_data)
+        test_data = self.min_max_normalization(min_train_val, max_train_val, test_data)
 
         train_dataset, train_label = self.slide_data_with_slidingWindow(train_data, sliding_window_length)
         self.get_labels(train_dataset, train_label)
@@ -380,9 +380,9 @@ class EEGDataset(Dataset):
         test_dataset, test_label = self.slide_data_with_slidingWindow(test_data,sliding_window_length=sliding_window_length)
         test_zeros, test_ones = self.get_labels(test_dataset, test_label, flg="test")
         # test_dataset, test_label = self.balance_data(test_dataset, test_label)
-        print("normalized_train_arr:",train_dataset)
+        print("normalized_train_arr:",train_label)
         print("normalized_train_arr.shape",train_dataset.shape)
-        print("normalized_test_arr:", test_dataset)
+        print("normalized_test_arr:", test_label)
         print("normalized_test_data.shape:", test_dataset.shape)
         # ===========================================
    

@@ -1,11 +1,11 @@
 source venv/bin/activate
-path='dataset/CharacterTrajectories.mat'
+path='dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=50
+EPOCH=20
 BATCH_SIZE=3
 
-LR=1e-4
+LR=1e-5
 patience=7
 train_percentage=0.75
 validate_percentage=0

@@ -57,16 +57,17 @@ def plot_prediction_curve(y, y_predict, test_loss,plot_folder_dir,is_train,test_
     # wandb.log({"plot_prediction_curve":wandb.Plotly(plt.gcf())}) # print the plot of the prediction curve on wandb
     plt.close()
 
-def plot_Confusion_Matrix(y_true, y_pred, flag="test_set"):
+def plot_Confusion_Matrix(y_true, y_pred, file_name, flag="test_set"):
     cm = confusion_matrix(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
 
     plt.figure(figsize=(4, 4))
+    plt.title(file_name)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
 
-    plot_folder_dir = "3_1confusion_matrix/"
+    plot_folder_dir = file_name+ "_confusion_matrix/"
 
     plot_time = time.strftime("%Y%m%d_%H%M%S")
     if os.path.exists(plot_folder_dir):
