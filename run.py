@@ -72,7 +72,7 @@ optimizer_name = 'Adagrad'
 train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage)
 test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage)
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 # -------------------------------
 DATA_LEN = train_dataset.train_len  # 训练集样本数量
 d_input = train_dataset.input_len  # 时间部数量

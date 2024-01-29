@@ -75,4 +75,4 @@ def evaluation(model, dataloader, DEVICE):
                     "test_precision":test_precision,
                     "test_recall":test_recall,
                     "test_f1_score":test_f1_score})
-        return label_pred, label_true
+        return test_acc, test_precision, test_recall, test_f1_score, label_pred, label_true

@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from time import time
 from tqdm import tqdm
+import numpy as np
 import os
 import wandb
 import argparse
@@ -29,6 +30,7 @@ def main(args):
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
+    print(file_name)
     # 超参数设置
     EPOCH = args.EPOCH
     BATCH_SIZE = args.BATCH_SIZE
@@ -91,6 +93,10 @@ def main(args):
     #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
 
     if is_train == True:
+        exp_accs=[]
+        exp_precisions = []
+        exp_recalls = [] 
+        exp_f1_scores = []
         print("===================train and validation====================")
         # experiments loop
         for exp_idx in range(num_exps):
@@ -111,9 +117,22 @@ def main(args):
             model = training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
                                                                                             val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
                                                                                             model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
-        # execute testing
-        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-        plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
+            # execute testing
+            test_acc, test_precision, test_recall, test_f1_score,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+            exp_accs.append(test_acc)
+            exp_precisions.append(test_precision)
+            exp_recalls.append(test_recall)
+            exp_f1_scores.append(test_f1_score)
+            plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
+            
+        exp_avg_acc = np.mean(exp_accs)
+        exp_avg_precision = np.mean(exp_precisions)
+        exp_avg_recalls = np.mean(exp_recalls)
+        exp_avg_f1_score = np.mean(exp_f1_scores)
+        wandb.log({"exp_avg_acc":exp_avg_acc,
+            "exp_avg_precision":exp_avg_precision,
+            "exp_avg_recalls":exp_avg_recalls,
+            "exp_avg_f1_score":exp_avg_f1_score})
             # confusion matrix for test set with best accuracy.
             # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
             # train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
