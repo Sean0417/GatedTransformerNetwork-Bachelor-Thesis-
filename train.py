@@ -26,7 +26,7 @@ class opt_and_cri_functions:
 
 
 
-def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name,file_name):
+def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name,file_name,num_head,num_encoder,d_model):
     # time_start = time.time()
     
     ocfunction = opt_and_cri_functions(model,learning_rate, optimizer_name)
@@ -39,7 +39,8 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     # all_epoch_val_accs = []
 
     exp_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    file_name = file_name+exp_timestamp+"_"+"checkpoint.pth"
+    full_param_name = file_name+"_"+f"d_model{d_model}_num_encoder{num_encoder}_num_head{num_head}_"+exp_timestamp
+    file_name = file_name+"/"+file_name+"_"+f"d_model{d_model}_num_encoder{num_encoder}_num_head{num_head}_"+exp_timestamp+"_"+"checkpoint.pth"
     best_model_path = os.path.join("./saved_models",file_name)
     early_stopping = EarlyStopping(patience=patience,
                                 path=best_model_path,
@@ -122,66 +123,4 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
 
     model.load_state_dict(torch.load(best_model_path))
 
-        # all_epoch_train_losses.append(epoch_train_loss)
-        # all_epoch_train_accs.append(epoch_train_acc)
-        # all_epoch_val_losses.append(epoch_val_loss)
-        # all_epoch_val_accs.append(epoch_val_acc)
-
-
-        # epoch_train_acc, epoch_train_precision, epoch_train_recall, epoch_train_F1, epoch_train_label_pred, epoch_train_label_true = evaluation(model=model,dataloader=train_loader,DEVICE=DEVICE,flag='train_set')
-        # epoch_val_acc,epoch_val_precision, epoch_val_recall, epoch_val_F1, epoch_val_label_pred, epoch_val_label_true = evaluation(model=model,dataloader=val_loader,DEVICE=DEVICE, flag='val_set')
-        
-        # model_name_during_training = "during_epoch_"+"exp_"+str(exp_index)+"_"+"epoch_"+str(epoch)+"_"
-
-        # plot_Confusion_Matrix(epoch_train_label_true, epoch_train_label_pred, model_name=model_name_during_training,flag="train_set")
-        # plot_Confusion_Matrix(epoch_val_label_true, epoch_val_label_pred, model_name=model_name_during_training,flag="test_set")
-        
-       
-
-        # epoch_test_acc, epoch_test_precision, epoch_test_recall, epoch_test_F1, epoch_test_label_pred, epoch_test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
-        
-        # plot_Confusion_Matrix(epoch_test_label_true, epoch_test_label_pred, model_name=model_name_during_training,flag="test_set")
-       
-        # print("y_pred:",epoch_test_label_pred)
-        # print("y_true:", epoch_test_label_true)
-        
-        # wandb.log({"test_acc:": epoch_test_acc, 'test_precision':epoch_test_precision, "test_recall": epoch_test_recall, "test_F1": epoch_test_F1})
-        # all_epoch_train_accs.append(epoch_train_acc)
-        # all_epoch_val_accs.append(epoch_val_acc)
-
-        # clear lists to track next epoch
-        # all_batch_train_losses = []
-        # all_batch_val_losses = []
-        # all_batch_train_accs = []
-        # all_batch_val_accs = []
-
-        # early _stopping needs the validation loss to check if if has decreased
-        # and if it has, it will make a checkpoint of the current model. Note that early stopping will only store the model with the best validation loss in checkpoint.pt
-        
-
-    # time consumed in one experiment
-    # time_end = time.time()
-    # duaration  = time_end - time_start
-    # print("The training took %.2f"%(duaration/60)+ "mins.")
-    # time_start = time.asctime(time.localtime(time_start))
-    # time_end = time.asctime(time.localtime(time_end))
-    # print("The starting time was ", time_start)
-    # print("The finishing time was ", time_end)
-
-    # load the last checkpoint with the best model
-    # model.load_state_dict(torch.load('checkpoint.pt'))
-
-    # if os.path.exists(model_folder_directory) == False:
-    #     os.makedirs(model_folder_directory)
-    # else:
-    #     pass
-
-    # # save the model with the best validation loss
-    # save_model_time = time.strftime("%Y%m%d_%H%M%S")
-    # model_name = 'after_earlyStopping_'+save_model_time+"_"+str(exp_index+1)
-    # torch.save(model.state_dict(),model_folder_directory+'/'+model_name+'.pkl')
-
-
-
-
-    return model
+    return model,full_param_name
