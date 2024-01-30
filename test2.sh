@@ -1,8 +1,8 @@
 source venv/bin/activate
-path='dataset/KickvsPunch.mat'
+path='dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
+POCH=60
 BATCH_SIZE=3
 
 LR=1e-4

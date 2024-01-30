@@ -49,6 +49,7 @@ class Transformer(Module):
         self.pe = pe
         self._d_input = d_input
         self._d_model = d_model
+        # self.stage = stage
 
     def forward(self, x, stage):
         """

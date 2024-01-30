@@ -105,7 +105,7 @@ def plot_heat_map(dataloader,model,file_name,DEVICE):
         os.makedirs(folder_name)
         plt.savefig(folder_name+'/'+"Heatmap_"+plot_time+'.png',format='png',dpi= 200)
     # plot score_channel
-    fig_channel, axes_channel = plt.subplots(1, score_channel.shape[0], figsize=(20, 5))
+    fig_channel, axes_channel = plt.subplots(4, score_input.shape[0]/4, figsize=(20, 20))
     for i in range(score_channel.shape[0]):
         ax = axes_channel[i]
         sns.heatmap(score_channel[i], ax=ax, cmap='Blues')

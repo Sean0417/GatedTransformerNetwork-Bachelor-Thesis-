@@ -26,7 +26,7 @@ class opt_and_cri_functions:
 
 
 
-def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name):
+def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name,file_name):
     # time_start = time.time()
     
     ocfunction = opt_and_cri_functions(model,learning_rate, optimizer_name)
@@ -39,7 +39,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     # all_epoch_val_accs = []
 
     exp_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    file_name = exp_timestamp+"_"+"checkpoint.pth"
+    file_name = file_name+exp_timestamp+"_"+"checkpoint.pth"
     best_model_path = os.path.join("./saved_models",file_name)
     early_stopping = EarlyStopping(patience=patience,
                                 path=best_model_path,
@@ -82,7 +82,10 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
         for i, (x, y) in tqdm(enumerate(val_loader), desc = 'validation', unit= 'batch'):
             x, y = x.to(DEVICE), y.to(DEVICE)
 
-            y_pre, _, _, _, _, _, _ = model(x.to(DEVICE), 'test')
+            y_pre, _, score_input, score_channel, _, _, _ = model(x.to(DEVICE), 'test')
+            # print("score_input:",score_input.shape)
+            # print("score_channel:", score_channel.shape)
+            
 
             # val_bacth_loss
             batch_loss = criterion(y_pre, y.to(DEVICE))

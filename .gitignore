@@ -14,6 +14,7 @@ wandbAPIKey.txt
 test.py
 test.sh
 test
+test2
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -67,3 +68,10 @@ JapaneseVowels_confusion_matrix
 ECG_confusion_matrix
 CMUsubject16_confusion_matrix
 CharacterTrajectories_confusion_matrix
+
+heatmap_score_channelECG
+heatmap_score_inputECG
+heatmap_score_channelWalkvsRun
+heatmap_score_inputWalkvsRun/
+heatmap_score_inputKickvsPunch
+heatmap_score_channelKickvsPunch

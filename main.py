@@ -15,7 +15,9 @@ from evaluation import evaluation
 from utils.random_seed import setup_seed
 from evaluation import evaluation
 from plot import plot_Confusion_Matrix
+from plot import plot_heat_map
 from dataset_process import MyDataset
+import torchsummary
 # from test import EEGDatase
 # setup_seed(30)
 
@@ -91,7 +93,20 @@ def main(args):
     # 创建Transformer模型
     # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
     #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+    model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+    param_size = 0
+    buffer_size = 0
+    for param in model.parameters():
+        param_size += param.nelement() * param.element_size()
 
+    for buffer in model.buffers():
+        buffer_size += buffer.nelement() * buffer.element_size()
+    
+    print(f"There are {param_size} parameters , and  {buffer_size} buffers")
+    size_all_mb = (param_size + buffer_size) / 1024**2
+    print('Size: {:.3f} MB'.format(size_all_mb))
+    os.environ['WANDB_MODE'] = 'dryrun'
     if is_train == True:
         exp_accs=[]
         exp_precisions = []
@@ -116,19 +131,22 @@ def main(args):
             wandb.watch(model,log="all")
             model = training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
                                                                                             val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
-                                                                                            model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name)
+                                                                                            model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name, file_name = file_name)
             # execute testing
-            test_acc, test_precision, test_recall, test_f1_score,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+            test_acc, test_precision, test_recall, test_f1_score,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name=file_name)
             exp_accs.append(test_acc)
+            print(exp_accs)
             exp_precisions.append(test_precision)
             exp_recalls.append(test_recall)
             exp_f1_scores.append(test_f1_score)
             plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
+            plot_heat_map(test_loader, model, file_name, DEVICE)
             
         exp_avg_acc = np.mean(exp_accs)
         exp_avg_precision = np.mean(exp_precisions)
         exp_avg_recalls = np.mean(exp_recalls)
         exp_avg_f1_score = np.mean(exp_f1_scores)
+        print(exp_avg_acc)
         wandb.log({"exp_avg_acc":exp_avg_acc,
             "exp_avg_precision":exp_avg_precision,
             "exp_avg_recalls":exp_avg_recalls,
@@ -153,7 +171,7 @@ def main(args):
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
         model.load_state_dict(torch.load(args.given_best_model_path))
         # execute testing
-        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE)
+        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name = file_name)
         plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
     
     

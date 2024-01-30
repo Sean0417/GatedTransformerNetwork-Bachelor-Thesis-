@@ -1,8 +1,8 @@
 source venv/bin/activate
-path='dataset/KickvsPunch.mat'
+path='dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
+EPOCH=20
 BATCH_SIZE=3
 
 LR=1e-4
@@ -18,10 +18,9 @@ N=8
 dropout=0.2
 sliding_window_length=21
 optimizer_name='Adagrad'
-num_exps=50
+num_exps=1
 is_train=true
-given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/2024-01-27-12-49-42_checkpoint.pth"
-
+given_best_model_path="saved_models/2024-01-27-12-49-42_checkpoint.pth"
 if [ "$is_train" = true ]; then
     echo 'training, validation and test'
     python main.py --path=$path \

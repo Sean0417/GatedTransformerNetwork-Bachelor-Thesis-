@@ -2,10 +2,11 @@ import torch
 from module.loss import Myloss
 import numpy as np
 import wandb
+from plot import plot_heat_map
 
  # testing
  
-def evaluation(model, dataloader, DEVICE):
+def evaluation(model, dataloader, DEVICE,file_name):
 
     correct = 0
     total = 0
@@ -21,8 +22,9 @@ def evaluation(model, dataloader, DEVICE):
         model.eval()
         for x, y in dataloader:
             x, y = x.to(DEVICE), y.to(DEVICE)
-            y_pre, _, _, _, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
+            y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
             
+            # plot_heat_map(score_input.cpu(),file_name)
             # acc
             _, label_index = torch.max(y_pre.data, dim=-1)
             total += label_index.shape[0]
