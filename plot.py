@@ -59,24 +59,23 @@ def plot_prediction_curve(y, y_predict, test_loss,plot_folder_dir,is_train,test_
     # wandb.log({"plot_prediction_curve":wandb.Plotly(plt.gcf())}) # print the plot of the prediction curve on wandb
     plt.close()
 
-def plot_Confusion_Matrix(y_true, y_pred, full_param_name, flag="test_set"):
+def plot_Confusion_Matrix(y_true, y_pred, file_name, full_param_name, flag="test_set"):
     cm = confusion_matrix(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
 
     plt.figure(figsize=(4, 4))
-    plt.title(full_param_name)
+    plt.title(f"confusion matrix on {file_name}")
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
 
-    plot_folder_dir = 'Confusion_Matrix/'+full_param_name+ "_confusion_matrix/"
+    plot_folder_dir = 'Confusion_Matrix/'+file_name+ "_confusion_matrix/"
 
-    plot_time = time.strftime("%Y%m%d_%H%M%S")
     if os.path.exists(plot_folder_dir):
-        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+plot_time+'.png',format='png',dpi= 200)
+        plt.savefig(plot_folder_dir+'/'+flag+'_'+full_param_name+'.png',format='png',dpi= 200)
     else:
         os.makedirs(plot_folder_dir)
-        plt.savefig(plot_folder_dir+'/'+flag+"_Confusion_Matrix_"+plot_time+'.png',format='png',dpi= 200)
+        plt.savefig(plot_folder_dir+'/'+flag+full_param_name+'.png',format='png',dpi= 200)
 
 def define_type(dataloader, model, DEVICE, prediction_type):
     score_input = np.zeros([8,8,8])
@@ -87,7 +86,7 @@ def define_type(dataloader, model, DEVICE, prediction_type):
             for x, y in dataloader:
                 x, y = x.to(DEVICE), y.to(DEVICE)
                 y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
-                _, label_index = torch.max(y_pre)
+                _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] == int(y[0]) and label_index[0] == 1:
                         break
@@ -98,7 +97,7 @@ def define_type(dataloader, model, DEVICE, prediction_type):
             for x, y in dataloader:
                 x, y = x.to(DEVICE), y.to(DEVICE)
                 y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
-                _, label_index = torch.max(y_pre)
+                _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] == int(y[0]) and label_index[0] == 0:
                     break
@@ -109,7 +108,7 @@ def define_type(dataloader, model, DEVICE, prediction_type):
             for x, y in dataloader:
                 x, y = x.to(DEVICE), y.to(DEVICE)
                 y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
-                _, label_index = torch.max(y_pre)
+                _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] != int(y[0]) and label_index[0] == 1:
                     break
@@ -120,7 +119,7 @@ def define_type(dataloader, model, DEVICE, prediction_type):
             for x, y in dataloader:
                 x, y = x.to(DEVICE), y.to(DEVICE)
                 y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
-                _, label_index = torch.max(y_pre)
+                _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] != int(y[0]) and label_index[0] == 0:
                     break
@@ -128,7 +127,7 @@ def define_type(dataloader, model, DEVICE, prediction_type):
     else:
         print("please enter the correct form of the prediction_type")
             
-def plot_heat_map(dataloader,model,file_name,DEVICE, prediction_type):
+def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_type):
     score_input, score_channel = define_type(dataloader=dataloader, 
                                                    model=model, 
                                                    DEVICE=DEVICE,
@@ -149,10 +148,10 @@ def plot_heat_map(dataloader,model,file_name,DEVICE, prediction_type):
         folder_name = "Heat_Map/heatmap_score_input"+file_name
         plt.tight_layout()
         if os.path.exists(folder_name):
-            plt.savefig(folder_name+'/'+"Heatmap_"+prediction_type+"_"+plot_time+'.png',format='png',dpi= 200)
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
         else:
             os.makedirs(folder_name)
-            plt.savefig(folder_name+'/'+"Heatmap_"+prediction_type+"_"+plot_time+'.png',format='png',dpi= 200)
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
         # plot score_channel
         fig_channel, axes_channel = plt.subplots(4, int(score_channel.shape[0]/4), figsize=(20, 20))
         for i in range(score_channel.shape[0]):
@@ -163,10 +162,10 @@ def plot_heat_map(dataloader,model,file_name,DEVICE, prediction_type):
             ax.set_ylabel('Query')
         folder_name = "Heat_Map/heatmap_score_channel"+file_name
         if os.path.exists(folder_name):
-            plt.savefig(folder_name+'/'+"Heatmap_"+prediction_type+"_"+plot_time+'.png',format='png',dpi= 200)
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
         else:
             os.makedirs(folder_name)
-            plt.savefig(folder_name+'/'+"Heatmap_"+prediction_type+"_"+plot_time+'.png',format='png',dpi= 200)
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
     
     else:
         print(f"There is no heatmap under the {prediction_type} circumstance")
