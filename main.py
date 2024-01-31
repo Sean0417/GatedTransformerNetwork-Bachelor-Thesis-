@@ -9,7 +9,7 @@ import argparse
 
 from module.transformer import Transformer
 from module.loss import Myloss
-# from processEEG import EEGDataset
+# from test import EEGDataset
 from train import training_validation
 from evaluation import evaluation
 from utils.random_seed import setup_seed
@@ -18,7 +18,7 @@ from plot import plot_Confusion_Matrix
 from plot import plot_heat_map
 from dataset_process import MyDataset
 import torchsummary
-# from test import EEGDatase
+from processEEG import EEGDataset
 # setup_seed(30)
 
 def main(args):
@@ -32,6 +32,7 @@ def main(args):
 
     draw_key = 1  # 大于等于draw_key才会保存图像
     file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
+
     print(file_name)
     # 超参数设置
     EPOCH = args.EPOCH
@@ -59,9 +60,10 @@ def main(args):
     sliding_window_length = args.sliding_window_length
     num_exps = args.num_exps
     
-    # 优化器选择
+    # the selection of the optimizer
     optimizer_name = args.optimizer_name
-
+    
+   
     # split the data into train, validate and test
     # train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
     # test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
@@ -118,9 +120,9 @@ def main(args):
                 # wandb initialization
             config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
-                        optimizer = optimizer_name, head_of_multi_attention=h)
+                        optimizer = optimizer_name, head_of_multi_attention=h, param_num = param_size, model_size= 'Size: {:.3f} MB'.format(size_all_mb),d_model=d_model, num_Encoder= N)
             print(config)
-            wandb.init(project=file_name,
+            wandb.init(project=args.project_name,
                     job_type="training",
                     config=config,
                     reinit=True,
@@ -129,9 +131,12 @@ def main(args):
             model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                         q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
             wandb.watch(model,log="all")
-            model = training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
-                                                                                            val_loader=val_loader, test_loader=test_loader, learning_rate=LR, patience=patience, exp_index=1, 
-                                                                                            model_folder_directory=model_folder_dir, DEVICE=DEVICE,optimizer_name=optimizer_name, file_name = file_name)
+            model, full_param_name= training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
+                            val_loader=val_loader, test_loader=test_loader, learning_rate=LR, 
+                            patience=patience, exp_index=1, 
+                            model_folder_directory=model_folder_dir, 
+                            DEVICE=DEVICE,optimizer_name=optimizer_name, 
+                            file_name = file_name,num_encoder=N,num_head=h,d_model=d_model)
             # execute testing
             test_acc, test_precision, test_recall, test_f1_score,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name=file_name)
             exp_accs.append(test_acc)
@@ -139,8 +144,13 @@ def main(args):
             exp_precisions.append(test_precision)
             exp_recalls.append(test_recall)
             exp_f1_scores.append(test_f1_score)
-            plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
-            plot_heat_map(test_loader, model, file_name, DEVICE)
+
+            # plot confusion matrix and heat_map
+            plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
             
         exp_avg_acc = np.mean(exp_accs)
         exp_avg_precision = np.mean(exp_precisions)
@@ -162,56 +172,36 @@ def main(args):
     else:
         config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
-                        optimizer = optimizer_name, head_of_multi_attention=h)
-        wandb.init(project=file_name,
+                        optimizer = optimizer_name, head_of_multi_attention=h, param_num = param_size, model_size= 'Size: {:.3f} MB'.format(size_all_mb),
+                        d_model=d_model, num_Encoder= N)
+
+        wandb.init(project=args.project_name,
         job_type="test",
         config=config,
         reinit=True,
         )
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
         model.load_state_dict(torch.load(args.given_best_model_path))
+
+        exp_timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
+        full_param_name = file_name+"_testonly_"+f"d_model{d_model}_num_encoder{N}_num_head{h}_"+exp_timestamp
+ 
         # execute testing
-        test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name = file_name)
-        plot_Confusion_Matrix(test_label_true, test_label_pred, file_name, flag="test_set")
+        _,_,_,_,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name = file_name)
+        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+        plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
     
     
 
-    # model =  
 
-    # best_test_loss= float('inf')
-    # best_test_loss_model=''
-
-    
-    # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
-    # plot_Confusion_Matrix(test_label_true, test_label_pred, model_name, flag="test_set")
-
-    # # use tqdm to beautify the output
-    # for file in tqdm(os.listdir(args.model_folder_dir),unit="model file"):
-    #     targets, predictions, test_loss = evaluation(model=model,test_loader=test_loader,lossfunction=args.lossfunction, model_filepath=args.model_folder_dir+'/'+file)
-    #     if test_loss < best_test_loss:
-    #         best_test_loss = test_loss
-    #         best_test_loss_model = file.split('.')[0]
-    #         targets_best = targets
-    #         predictions_best =predictions
-    #     else:
-    #         pass
-
-
-    # # 3. evaluation test sets with accuracy, precision, F1 score and AUC
-    # if is_train == True:
-    #     # first set the best loss to infinity
-       
-    # else:
-    #     model.load_state_dict(test_model)
-    #     test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
-    #     plot_Confusion_Matrix(test_label_true, test_label_pred, model_name, flag="test_set")
-    #     plot_Confusion_Matrix(train_label_true, train_label_pred, model_name, flag="train_set")
-    
-    # # 4. plot
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Set hyper parameters for the training.')
+    parser.add_argument('--project_name',type=str, required=True, help="the project name of wandb.")
     parser.add_argument('--path',type=str, required=True, help="the path of the dataset")
     parser.add_argument('--plot_folder_dir', type=str,required=True,help="the folder directory where plot results are stored")
     parser.add_argument('--model_folder_dir', type=str, required=True,help="the directory of the model folder")

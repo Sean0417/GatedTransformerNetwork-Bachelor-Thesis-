@@ -1,8 +1,8 @@
 source venv/bin/activate
-path='dataset/WalkvsRun.mat'
+path='dataset/ECG.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=20
+EPOCH=10
 BATCH_SIZE=3
 
 LR=1e-4
@@ -20,7 +20,7 @@ sliding_window_length=21
 optimizer_name='Adagrad'
 num_exps=1
 is_train=true
-given_best_model_path="saved_models/2024-01-27-12-49-42_checkpoint.pth"
+given_best_model_path="saved_models/WalkvsRun2024-01-30-10-30-05_checkpoint.pth"
 if [ "$is_train" = true ]; then
     echo 'training, validation and test'
     python main.py --path=$path \

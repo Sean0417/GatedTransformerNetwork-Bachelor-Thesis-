@@ -78,8 +78,9 @@ def plot_Confusion_Matrix(y_true, y_pred, file_name, full_param_name, flag="test
         plt.savefig(plot_folder_dir+'/'+flag+full_param_name+'.png',format='png',dpi= 200)
 
 def define_type(dataloader, model, DEVICE, prediction_type):
-    score_input = np.zeros([8,8,8])
-    score_channel = np.zeros([8,8,8])
+    score_input=np.zeros([8,8,8])
+    score_channel=np.zeros([8,8,8])
+    flag=0
     if prediction_type == "TP":
         with torch.no_grad():
             model.eval()
@@ -89,8 +90,9 @@ def define_type(dataloader, model, DEVICE, prediction_type):
                 _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] == int(y[0]) and label_index[0] == 1:
+                        flag=1
                         break
-            return score_input, score_channel
+            return score_input, score_channel,flag
     elif prediction_type == "TN":
         with torch.no_grad():
             model.eval()
@@ -100,8 +102,9 @@ def define_type(dataloader, model, DEVICE, prediction_type):
                 _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] == int(y[0]) and label_index[0] == 0:
+                    flag=1
                     break
-            return score_input, score_channel
+            return score_input, score_channel,flag
     elif prediction_type == "FP":
         with torch.no_grad():
             model.eval()
@@ -111,8 +114,9 @@ def define_type(dataloader, model, DEVICE, prediction_type):
                 _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] != int(y[0]) and label_index[0] == 1:
+                    flag=1
                     break
-            return score_input, score_channel
+            return score_input, score_channel,flag
     elif prediction_type == "FN":
         with torch.no_grad():
             model.eval()
@@ -122,51 +126,138 @@ def define_type(dataloader, model, DEVICE, prediction_type):
                 _, label_index = torch.max(y_pre.data, dim=-1)
                 
                 if label_index[0] != int(y[0]) and label_index[0] == 0:
+                    flag=1
                     break
-            return score_input, score_channel
+            return score_input, score_channel, flag
     else:
         print("please enter the correct form of the prediction_type")
             
 def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_type):
-    score_input, score_channel = define_type(dataloader=dataloader, 
-                                                   model=model, 
-                                                   DEVICE=DEVICE,
-                                                   prediction_type=prediction_type)
-    if score_channel != np.zeros([8,8,8]):
-        plot_time = time.strftime("%Y%m%d_%H%M%S")
-        score_input = score_input.detach().cpu().numpy()
-        score_channel = score_channel.detach().cpu().numpy()
+    score_input, score_channel, flag= define_type(dataloader=dataloader,model=model, DEVICE=DEVICE,prediction_type=prediction_type)
+    num_heads = score_input.shape[0]
+    # calculate the rows, two
+    num_rows = np.ceil(num_heads / 2).astype(int)
+    plot_time = time.strftime("%Y%m%d_%H%M%S")
+    score_input = score_input.detach().cpu().numpy()
+    score_channel = score_channel.detach().cpu().numpy()
 
-        # plot score_input_
-        fig_input, axes_input = plt.subplots(4, int(score_input.shape[0]/4), figsize=(20, 20))
-        for i in range(score_input.shape[0]):
-            ax = axes_input[i // 2, i % 2]
-            sns.heatmap(score_input[i], ax=ax, cmap='Blues')
-            ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
-            ax.set_xlabel('Key')
-            ax.set_ylabel('Query')
-        folder_name = "Heat_Map/heatmap_score_input"+file_name
-        plt.tight_layout()
-        if os.path.exists(folder_name):
-            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
-        else:
-            os.makedirs(folder_name)
-            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
-        # plot score_channel
-        fig_channel, axes_channel = plt.subplots(4, int(score_channel.shape[0]/4), figsize=(20, 20))
-        for i in range(score_channel.shape[0]):
-            ax = axes_channel[i // 2, i % 2]
-            sns.heatmap(score_channel[i], ax=ax, cmap='Blues')
-            ax.set_title(f'Channelwise Attention Heatmap for {prediction_type} on Head {i+1}')
-            ax.set_xlabel('Key')
-            ax.set_ylabel('Query')
-        folder_name = "Heat_Map/heatmap_score_channel"+file_name
-        if os.path.exists(folder_name):
-            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
-        else:
-            os.makedirs(folder_name)
-            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
-    
+    if flag==1:
+        if num_heads >= 4:
+
+            # plot score_input_
+            fig_input, axes_input = plt.subplots(num_rows, 2, figsize=(20, num_rows*5))
+
+            for i in range(score_input.shape[0]):
+                ax = axes_input[i // 2, i % 2]
+                sns.heatmap(score_input[i], ax=ax, cmap='Blues')
+                ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
+                ax.set_xlabel('Key')
+                ax.set_ylabel('Query')
+            
+            folder_name = "Heat_Map/heatmap_score_input"+file_name
+            plt.tight_layout()
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+                
+            
+            
+            
+            # plot score_channel
+            
+            fig_channel, axes_channel= plt.subplots(num_rows, 2, figsize=(20, num_rows*5))
+
+            for i in range(score_channel.shape[0]):
+                ax = axes_channel[i // 2, i % 2]
+                sns.heatmap(score_channel[i], ax=ax, cmap='Blues')
+                ax.set_title(f'Channelwise Attention Heatmap for {prediction_type} on Head {i+1}')
+                ax.set_xlabel('Key')
+                ax.set_ylabel('Query')
+
+            folder_name = "Heat_Map/heatmap_score_channel"+file_name
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+        elif num_heads == 2:
+            # plot score_input_
+            fig_input, axes_input = plt.subplots(num_rows, 2, figsize=(20, 5*num_rows))
+            if num_heads == 1:
+               axes_input = [axes_input]
+
+            for i in range(score_input.shape[0]):
+                ax = axes_input[i]
+                sns.heatmap(score_input[i], ax=ax, cmap='Blues')
+                ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
+                ax.set_xlabel('Key')
+                ax.set_ylabel('Query') 
+                        
+            folder_name = "Heat_Map/heatmap_score_input"+file_name
+            plt.tight_layout()
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+ 
+
+
+            fig_channel, axes_channel = plt.subplots(num_rows, 2, figsize=(20, num_rows*5))
+            # if the axes is not 2-dimensionl（whennum_heads < 2），change it into 2 dimensions
+            for i in range(score_channel.shape[0]):
+                ax = axes_channel[i]
+                sns.heatmap(score_channel[i], ax=ax, cmap='Blues')
+                ax.set_title(f'Channelwise Attention Heatmap for {prediction_type} on Head {i+1}')
+                ax.set_xlabel('Key')
+                ax.set_ylabel('Query')
+
+            plt.tight_layout()
+            folder_name = "Heat_Map/heatmap_score_channel"+file_name
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+
+        elif num_heads == 1:
+
+            # plot step-wise
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(score_input[0], cmap='Blues')
+            plt.title(f'Stepwise Attention Heatmap for {prediction_type}')
+            plt.xlabel("Key")
+            plt.ylabel("Query")
+
+            folder_name = "Heat_Map/heatmap_score_input"+file_name
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+                
+            
+
+            #plot channel wise
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(score_channel[0], cmap='Blues')
+            plt.title(f'Stepwise Attention Heatmap for {prediction_type}')
+            plt.xlabel("Key")
+            plt.ylabel("Query")
+
+            folder_name = "Heat_Map/heatmap_score_channel"+file_name
+            if os.path.exists(folder_name):
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+            else:
+                os.makedirs(folder_name)
+                plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'.png',format='png',dpi= 200)
+
+
+
+
+
     else:
         print(f"There is no heatmap under the {prediction_type} circumstance")
 
