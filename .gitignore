@@ -52,7 +52,7 @@ ENV/
 *.sublime-workspace
 *.sublime-project
 
-data
+dataset
 
 
 WalkvsRun_confusion_matrix
