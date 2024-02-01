@@ -3,7 +3,7 @@ project_name="ECG_train_num_head"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
+EPOCH=5
 BATCH_SIZE=3
 
 LR=1e-4
@@ -19,57 +19,32 @@ N=8
 dropout=0.2
 sliding_window_length=21
 optimizer_name='Adagrad'
-num_exps=50
+num_exps=1
 is_train=true
-given_best_model_path="saved_models/WalkvsRun2024-01-30-10-30-05_checkpoint.pth"
+given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_d_model512_num_encoder8_num_head8_20240131012611_checkpoint.pth"
 for head in "${head_list[@]}"
 do
-    if [ "$is_train" = true ]; then
-        echo 'training, validation and test'
-        python main.py --project_name=$project_name \
-        --path=$path \
-        --plot_folder_dir=$plot_folder_dir \
-        --model_folder_dir=$model_folder_dir \
-        --EPOCH=$EPOCH \
-        --BATCH_SIZE=$BATCH_SIZE \
-        --learning_rate=$LR \
-        --patience=$patience \
-        --train_percentage=$train_percentage \
-        --validate_percentage=$validate_percentage \
-        --d_model=$d_model \
-        --d_hidden=$d_hidden \
-        -q=$q \
-        -v=$v \
-        -head=$head \
-        -N=$N \
-        --dropout=$dropout \
-        --sliding_window_length=$sliding_window_length \
-        --optimizer_name=$optimizer_name \
-        --num_exps=$num_exps \
-        --is_train
-    else
-        echo 'only conduct testing'
-        python main.py --project_name=$project_name \
-        --path=$path \
-        --plot_folder_dir=$plot_folder_dir \
-        --model_folder_dir=$model_folder_dir \
-        --EPOCH=$EPOCH \
-        --BATCH_SIZE=$BATCH_SIZE \
-        --learning_rate=$LR \
-        --patience=$patience \
-        --train_percentage=$train_percentage \
-        --validate_percentage=$validate_percentage \
-        --d_model=$d_model \
-        --d_hidden=$d_hidden \
-        -q=$q \
-        -v=$v \
-        -head=$head \
-        -N=$N \
-        --dropout=$dropout \
-        --sliding_window_length=$sliding_window_length \
-        --optimizer_name=$optimizer_name \
-        --num_exps=$num_exps \
-        --given_best_model_path=$given_best_model_path
-    fi
+    echo 'training, validation and test'
+    python main.py --project_name=$project_name \
+    --path=$path \
+    --plot_folder_dir=$plot_folder_dir \
+    --model_folder_dir=$model_folder_dir \
+    --EPOCH=$EPOCH \
+    --BATCH_SIZE=$BATCH_SIZE \
+    --learning_rate=$LR \
+    --patience=$patience \
+    --train_percentage=$train_percentage \
+    --validate_percentage=$validate_percentage \
+    --d_model=$d_model \
+    --d_hidden=$d_hidden \
+    -q=$q \
+    -v=$v \
+    -head=$head \
+    -N=$N \
+    --dropout=$dropout \
+    --sliding_window_length=$sliding_window_length \
+    --optimizer_name=$optimizer_name \
+    --num_exps=$num_exps \
+    --is_train
 done
 deactivate

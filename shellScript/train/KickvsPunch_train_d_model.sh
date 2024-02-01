@@ -24,52 +24,27 @@ is_train=true
 given_best_model_path="saved_models/WalkvsRun2024-01-30-10-30-05_checkpoint.pth"
 for d_model in "${d_model_list[@]}"
 do
-    if [ "$is_train" = true ]; then
-        echo 'training, validation and test'
-        python main.py --project_name=$project_name \
-        --path=$path \
-        --plot_folder_dir=$plot_folder_dir \
-        --model_folder_dir=$model_folder_dir \
-        --EPOCH=$EPOCH \
-        --BATCH_SIZE=$BATCH_SIZE \
-        --learning_rate=$LR \
-        --patience=$patience \
-        --train_percentage=$train_percentage \
-        --validate_percentage=$validate_percentage \
-        --d_model=$d_model \
-        --d_hidden=$d_hidden \
-        -q=$q \
-        -v=$v \
-        -head=$head \
-        -N=$N \
-        --dropout=$dropout \
-        --sliding_window_length=$sliding_window_length \
-        --optimizer_name=$optimizer_name \
-        --num_exps=$num_exps \
-        --is_train
-    else
-        echo 'only conduct testing'
-        python main.py --project_name=$project_name \
-        --path=$path \
-        --plot_folder_dir=$plot_folder_dir \
-        --model_folder_dir=$model_folder_dir \
-        --EPOCH=$EPOCH \
-        --BATCH_SIZE=$BATCH_SIZE \
-        --learning_rate=$LR \
-        --patience=$patience \
-        --train_percentage=$train_percentage \
-        --validate_percentage=$validate_percentage \
-        --d_model=$d_model \
-        --d_hidden=$d_hidden \
-        -q=$q \
-        -v=$v \
-        -head=$head \
-        -N=$N \
-        --dropout=$dropout \
-        --sliding_window_length=$sliding_window_length \
-        --optimizer_name=$optimizer_name \
-        --num_exps=$num_exps \
-        --given_best_model_path=$given_best_model_path
-    fi
+    echo 'training, validation and test'
+    python main.py --project_name=$project_name \
+    --path=$path \
+    --plot_folder_dir=$plot_folder_dir \
+    --model_folder_dir=$model_folder_dir \
+    --EPOCH=$EPOCH \
+    --BATCH_SIZE=$BATCH_SIZE \
+    --learning_rate=$LR \
+    --patience=$patience \
+    --train_percentage=$train_percentage \
+    --validate_percentage=$validate_percentage \
+    --d_model=$d_model \
+    --d_hidden=$d_hidden \
+    -q=$q \
+    -v=$v \
+    -head=$head \
+    -N=$N \
+    --dropout=$dropout \
+    --sliding_window_length=$sliding_window_length \
+    --optimizer_name=$optimizer_name \
+    --num_exps=$num_exps \
+    --is_train
 done
 deactivate
