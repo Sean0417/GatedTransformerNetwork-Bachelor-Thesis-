@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from time import time
+import time
 from tqdm import tqdm
 import numpy as np
 import os
