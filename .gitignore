@@ -13,8 +13,6 @@ wandb
 wandbAPIKey.txt
 test.py
 test.sh
-test
-test2
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -68,6 +66,3 @@ CharacterTrajectories_confusion_matrix
 
 Heat_Map
 Confusion_Matrix
-
-test
-test2
