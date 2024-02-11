@@ -1,15 +1,16 @@
 source venv/bin/activate
-path='dataset/ECG.mat'
+project_name="EEG"
+path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/EEG_Eye_State_Classification.csv'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
 EPOCH=10
-BATCH_SIZE=3
+BATCH_SIZE=32
 
 LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
-d_model=512
+d_model=1024
 d_hidden=1024
 q=8
 v=8
@@ -24,6 +25,7 @@ given_best_model_path="saved_models/WalkvsRun2024-01-30-10-30-05_checkpoint.pth"
 if [ "$is_train" = true ]; then
     echo 'training, validation and test'
     python main.py --path=$path \
+    --project_name=$project_name \
     --plot_folder_dir=$plot_folder_dir \
     --model_folder_dir=$model_folder_dir \
     --EPOCH=$EPOCH \

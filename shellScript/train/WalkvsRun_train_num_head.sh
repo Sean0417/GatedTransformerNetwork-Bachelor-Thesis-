@@ -3,7 +3,7 @@ project_name="WalkvsRun_train_num_head"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
+EPOCH=50
 BATCH_SIZE=3
 
 LR=1e-4

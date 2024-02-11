@@ -21,7 +21,7 @@ sliding_window_length=21
 optimizer_name='Adagrad'
 num_exps=50
 is_train=false
-given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_d_model512_num_encoder8_num_head8_20240131012611_checkpoint.pth"
+given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_d_model512_num_encoder8_num_head8_20240202063729_checkpoint.pth"
 echo 'only conduct testing'
 python main.py --project_name=$project_name \
     --path=$path \

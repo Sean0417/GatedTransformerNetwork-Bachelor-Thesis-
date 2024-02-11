@@ -3,14 +3,14 @@ project_name="WalkvsRun_train_d_model"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
-EPOCH=100
+EPOCH=50
 BATCH_SIZE=3
 
 LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
-d_model_list=(512 256 128 64)
+d_model_list=(16 32 128)
 d_hidden=1024
 q=8
 v=8

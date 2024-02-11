@@ -149,7 +149,7 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             for i in range(score_input.shape[0]):
                 ax = axes_input[i // 2, i % 2]
-                sns.heatmap(score_input[i], ax=ax, cmap='Blues')
+                sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues')
                 ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
                 ax.set_xlabel('Key')
                 ax.set_ylabel('Query')
@@ -171,7 +171,7 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             for i in range(score_channel.shape[0]):
                 ax = axes_channel[i // 2, i % 2]
-                sns.heatmap(score_channel[i], ax=ax, cmap='Blues')
+                sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues')
                 ax.set_title(f'Channelwise Attention Heatmap for {prediction_type} on Head {i+1}')
                 ax.set_xlabel('Key')
                 ax.set_ylabel('Query')
@@ -262,4 +262,135 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
         print(f"There is no heatmap under the {prediction_type} circumstance")
 
 
+def define_type_3(dataloader, model, DEVICE, prediction_type):
+    score_inputs=[]
+    score_channels=[]
+    flag=0
+    if prediction_type == "TP":
+        with torch.no_grad():
+            model.eval()
+            for x, y in dataloader:
+                x, y = x.to(DEVICE), y.to(DEVICE)
+                y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
+                _, label_index = torch.max(y_pre.data, dim=-1)
+                
+                if label_index[0] == int(y[0]) and label_index[0] == 1:
+                        score_input = score_input.cpu().data.numpy()
+                        score_channel = score_channel.cpu().data.numpy()
+                        score_inputs.append(score_input)
+                        score_channels.append(score_channel)
+                        flag += 1
+                if flag == 3:
+                        break
+            return np.array(score_inputs), np.array(score_channels),flag
+    elif prediction_type == "TN":
+        with torch.no_grad():
+            model.eval()
+            for x, y in dataloader:
+                x, y = x.to(DEVICE), y.to(DEVICE)
+                y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
+                _, label_index = torch.max(y_pre.data, dim=-1)
+                
+                if label_index[0] == int(y[0]) and label_index[0] == 0:
+                        score_input = score_input.cpu().data.numpy()
+                        score_channel = score_channel.cpu().data.numpy()
+                        score_inputs.append(score_input)
+                        score_channels.append(score_channel)
+                        flag += 1
+                if flag == 3:
+                        break
+            return np.array(score_inputs), np.array(score_channels),flag
+    elif prediction_type == "FP":
+        with torch.no_grad():
+            model.eval()
+            for x, y in dataloader:
+                x, y = x.to(DEVICE), y.to(DEVICE)
+                y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
+                _, label_index = torch.max(y_pre.data, dim=-1)
+                
+                if label_index[0] != int(y[0]) and label_index[0] == 1:
+                        score_input = score_input.cpu().data.numpy()
+                        score_channel = score_channel.cpu().data.numpy()
+                        score_inputs.append(score_input)
+                        score_channels.append(score_channel)
+                        flag += 1
+                if flag == 3:
+                        break
+            return np.array(score_inputs), np.array(score_channels),flag
+    elif prediction_type == "FN":
+        with torch.no_grad():
+            model.eval()
+            for x, y in dataloader:
+                x, y = x.to(DEVICE), y.to(DEVICE)
+                y_pre, _, score_input, score_channel, _, _, _ = model(x, 'test') # y_pre is a tensor with a dimension of batchsize*2(200*2 for instance if the batchsize is 200),
+                _, label_index = torch.max(y_pre.data, dim=-1)
+                
+                if label_index[0] != int(y[0]) and label_index[0] == 0:
+                        score_input = score_input.cpu().data.numpy()
+                        score_channel = score_channel.cpu().data.numpy()
+                        score_inputs.append(score_input)
+                        score_channels.append(score_channel)
+                        flag += 1
+                if flag == 3:
+                        break
+            return np.array(score_inputs), np.array(score_channels),flag
+    else:
+        print("please enter the correct form of the prediction_type")
+
+def test_plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_type):
+    score_inputs, score_channels, flag= define_type_3(dataloader=dataloader,model=model, DEVICE=DEVICE,prediction_type=prediction_type)
+    num_heads = score_inputs.shape[1]
+    # calculate the rows, two
+    num_rows = np.ceil(num_heads / 2).astype(int)
+    plot_time = time.strftime("%Y%m%d_%H%M%S")
+    # score_input = score_input.detach().cpu().numpy()
+    # score_channel = score_channel.detach().cpu().numpy()
     
+
+    # plot score_input_
+    # j = 0
+    # for score_input in score_inputs:
+    #     j+=1
+    #     fig_input, axes_input = plt.subplots(num_rows, 2, figsize=(30, num_rows*15))
+    #     for i in range(score_input.shape[0]):
+    #         ax = axes_input[i // 2, i % 2]
+    #         h=sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues', square=True, cbar=False)
+    #         ax.set_title(f'{prediction_type} on Head {i+1}', fontsize = 40)
+    #         # ax.set_xlabel('Key')
+    #         # ax.set_ylabel('Query')
+    #         cb=h.figure.colorbar(h.collections[0])
+    #         cb.ax.tick_params(labelsize=40) #设置colorbar刻度字体大小
+    #         ax.tick_params(labelsize=20)
+    #         print(str(j)+','+str(i))
+    #     folder_name = "Heat_Map/heatmap_score_input"+file_name
+    #     plt.tight_layout()
+    #     if os.path.exists(folder_name):
+    #         plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'inferred_times_'+str(j)+'.pdf',format='pdf',dpi= 200)
+    #     else:
+    #         os.makedirs(folder_name)
+    #         plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'inferred_times_'+str(j)+'.pdf',format='pdf',dpi= 200)
+                
+        
+    # plot score_channel
+            
+    j = 0
+    for score_channel in score_channels:
+        j+=1
+        fig_channel, axes_channel= plt.subplots(num_rows, 2, figsize=(30, num_rows*15))
+        for i in range(score_channel.shape[0]):
+            ax = axes_channel[i // 2, i % 2]
+            h2=sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            ax.set_title(f'{prediction_type} Head {i+1}',fontsize=50)
+            # ax.set_xlabel('Key')
+            # ax.set_ylabel('Query')
+            cb=h2.figure.colorbar(h2.collections[0])
+            cb.ax.tick_params(labelsize=45) #设置colorbar刻度字体大小
+            ax.tick_params(labelsize=45) # 坐标轴刻度
+            print(str(j)+','+str(i))
+
+        folder_name = "Heat_Map/test_heatmap_score_channel"+file_name
+        if os.path.exists(folder_name):
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'inferred_times_'+str(j)+'.pdf',format='pdf',dpi= 200)
+        else:
+            os.makedirs(folder_name)
+            plt.savefig(folder_name+'/'+"Heatmap_"+full_param_name+'_'+prediction_type+'inferred_times_'+str(j)+'.pdf',format='pdf',dpi= 200)

@@ -16,10 +16,11 @@ from utils.random_seed import setup_seed
 from evaluation import evaluation
 from plot import plot_Confusion_Matrix
 from plot import plot_heat_map
+from plot import test_plot_heat_map
 from dataset_process import MyDataset
 import torchsummary
 from processEEG import EEGDataset
-# setup_seed(30)
+setup_seed(30)
 
 def main(args):
     # 1. data preprocessing
@@ -147,10 +148,10 @@ def main(args):
 
             # plot confusion matrix and heat_map
             plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
-            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+            test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+            test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+            test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+            test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
             
         exp_avg_acc = np.mean(exp_accs)
         exp_avg_precision = np.mean(exp_precisions)
@@ -188,11 +189,15 @@ def main(args):
  
         # execute testing
         _,_,_,_,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name = file_name)
-        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-        plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
         plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
     
     
 
