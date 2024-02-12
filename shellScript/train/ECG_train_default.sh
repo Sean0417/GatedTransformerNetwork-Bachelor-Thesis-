@@ -1,6 +1,8 @@
 source venv/bin/activate
 project_name="ECG_train_d_model"
-path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
+# path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
+# path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/EEG_Eye_State_Classification.csv'
+path='dataset/WalkvsRun.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
 EPOCH=100
@@ -10,7 +12,7 @@ LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
-d_model_list=(16 32)
+d_model=512
 d_hidden=1024
 q=8
 v=8
@@ -22,10 +24,9 @@ optimizer_name='Adagrad'
 num_exps=50
 is_train=true
 given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_d_model512_num_encoder8_num_head8_20240131012611_checkpoint.pth"
-for d_model in "${d_model_list[@]}"
-do
-    echo 'training, validation and test'
-    python main.py --project_name=$project_name \
+echo 'training, validation and test'
+echo ”d_model:$d_model, head:$head, encoder:$N“
+python main.py --project_name=$project_name \
     --path=$path \
     --plot_folder_dir=$plot_folder_dir \
     --model_folder_dir=$model_folder_dir \
@@ -46,5 +47,4 @@ do
     --optimizer_name=$optimizer_name \
     --num_exps=$num_exps \
     --is_train
-done
 deactivate

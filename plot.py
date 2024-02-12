@@ -340,8 +340,10 @@ def define_type_3(dataloader, model, DEVICE, prediction_type):
 def test_plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_type):
     score_inputs, score_channels, flag= define_type_3(dataloader=dataloader,model=model, DEVICE=DEVICE,prediction_type=prediction_type)
     num_heads = score_inputs.shape[1]
+    print("score_inputs_shape", score_inputs.shape)
     # calculate the rows, two
     num_rows = np.ceil(num_heads / 2).astype(int)
+    print("num_rows:",num_rows)
     plot_time = time.strftime("%Y%m%d_%H%M%S")
     # score_input = score_input.detach().cpu().numpy()
     # score_channel = score_channel.detach().cpu().numpy()

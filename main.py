@@ -7,8 +7,10 @@ import os
 import wandb
 import argparse
 
-from module.transformer import Transformer
-from module.loss import Myloss
+# from module.transformer import Transformer
+# from module.loss import Myloss
+from module2.transformer import Transformer
+from module2.loss import Myloss
 # from test import EEGDataset
 from train import training_validation
 from evaluation import evaluation
