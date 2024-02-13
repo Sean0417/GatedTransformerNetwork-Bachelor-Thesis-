@@ -65,9 +65,9 @@ def plot_Confusion_Matrix(y_true, y_pred, file_name, full_param_name, flag="test
 
     plt.figure(figsize=(4, 4))
     plt.title(f"confusion matrix on {file_name}")
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, annot_kws={"size":14})
+    plt.xlabel('Predicted',fontsize=14)
+    plt.ylabel('True',fontsize=14)
 
     plot_folder_dir = 'Confusion_Matrix/'+file_name+ "_confusion_matrix/"
 
@@ -141,13 +141,16 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
     score_input = score_input.detach().cpu().numpy()
     score_channel = score_channel.detach().cpu().numpy()
 
+    print('score_channel:',score_channel)
+    print('score_channel:',score_channel.shape)
     if flag==1:
         if num_heads >= 4:
 
             # plot score_input_
             fig_input, axes_input = plt.subplots(num_rows, 2, figsize=(20, num_rows*5))
-
+           
             for i in range(score_input.shape[0]):
+                print(score_input[i].shape)
                 ax = axes_input[i // 2, i % 2]
                 sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues')
                 ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
