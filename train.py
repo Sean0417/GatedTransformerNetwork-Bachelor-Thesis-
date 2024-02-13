@@ -26,7 +26,7 @@ class opt_and_cri_functions:
 
 
 
-def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name,file_name,num_head,num_encoder,d_model):
+def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,learning_rate,patience,exp_index,model_folder_directory, DEVICE, optimizer_name,file_name,num_head,num_encoder,d_model,attn_type:str):
     # time_start = time.time()
     
     ocfunction = opt_and_cri_functions(model,learning_rate, optimizer_name)
@@ -39,7 +39,7 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     # all_epoch_val_accs = []
 
     exp_timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    full_param_name = file_name+"_"+f"d_model{d_model}_num_encoder{num_encoder}_num_head{num_head}_"+exp_timestamp
+    full_param_name = file_name+"_"+f"{attn_type}_d{d_model}_N{num_encoder}_h{num_head}_"+exp_timestamp
     file_name = file_name+"/"+file_name+"_"+f"d_model{d_model}_num_encoder{num_encoder}_num_head{num_head}_"+exp_timestamp+"_"+"checkpoint.pth"
     best_model_path = os.path.join("./saved_models",file_name)
     early_stopping = EarlyStopping(patience=patience,
