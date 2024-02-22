@@ -39,8 +39,8 @@ def training_validation(model,epoch_sum,train_loader,val_loader,test_loader,lear
     # all_epoch_val_accs = []
 
     exp_timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    full_param_name = file_name+"_"+f"{attn_type}_d{d_model}_N{num_encoder}_h{num_head}_"+exp_timestamp
-    file_name = file_name+"/"+file_name+"_"+f"d_model{d_model}_num_encoder{num_encoder}_num_head{num_head}_"+exp_timestamp+"_"+"checkpoint.pth"
+    full_param_name = file_name+"_"+f"channelwise_{attn_type}_d{d_model}_N{num_encoder}_h{num_head}_"+exp_timestamp
+    file_name = file_name+"/"+file_name+"_"+f"channelwise_{attn_type}_d{d_model}_N{num_encoder}_h{num_head}_"+exp_timestamp+"_"+"checkpoint.pth"
     best_model_path = os.path.join("./saved_models",file_name)
     early_stopping = EarlyStopping(patience=patience,
                                 path=best_model_path,

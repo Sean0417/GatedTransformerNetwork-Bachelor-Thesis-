@@ -22,24 +22,6 @@ import torchsummary
 # setup_seed(30)
 
 def main(args):
-    # choose the correct attn module to load
-    if args.attn_type == 'normal_attn':
-        from module.transformer import Transformer
-        from module.loss import Myloss
-        from dataset_process import MyDataset
-    elif args.attn_type == 'ProbSparse_attn':
-        from module2.transformer import Transformer
-        from module2.loss import Myloss
-        from dataset_process import MyDataset
-    elif args.attn_type == 'longformer_attn':
-        from module3.transformer import Transformer
-        from module3.loss import Myloss
-        from dataset_process_longformer import MyDataset
-    else:
-        print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
-        sys.exit()
-
-
     # data preprocessing
     path = args.path
     plot_folder_dir= args.plot_folder_dir
@@ -62,7 +44,7 @@ def main(args):
 
     train_percentage = args.train_percentage
     validate_percentage = args.validate_percentage
-    longformer_w_ratio =args.longformer_w_ratio
+    longformer_w_ratio=args.longformer_w_ratio
     
     # hyperparameters inside model
     d_model = args.d_model
@@ -82,27 +64,26 @@ def main(args):
     
     # the selection of the optimizer
     optimizer_name = args.optimizer_name
-    
-   
-    # split the data into train, validate and test
-    # train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    # val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    # test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
-    # =================datasets in GTN=========================================
-    train_dataset = MyDataset(path, 'train')
-    test_dataset = MyDataset(path, 'test')
-    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+
+    if args.attn_type == 'longformer_attn':
+        from module3.transformer import Transformer
+        from module3.loss import Myloss
+        from dataset_process_longformer import MyDataset
+        train_dataset = MyDataset(path, 'train',longformer_w_ratio)
+        test_dataset = MyDataset(path, 'test', longformer_w_ratio)
+        train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+    else:
+        print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
+        sys.exit()
     
     # -------------------------------
     DATA_LEN = train_dataset.train_len  # 训练集样本数量
     d_input = train_dataset.input_len  # 时间部数量
     d_channel = train_dataset.channel_len  # 时间序列维度
     d_output = train_dataset.output_len  # 分类类别
+    attention_window = train_dataset.attention_window 
 
     # 维度展示
     print('data structure: [lines, timesteps, features]')
@@ -116,7 +97,7 @@ def main(args):
     # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
     #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
     
     
     param_size = 0
@@ -163,7 +144,7 @@ def main(args):
                     )
             # model initialization
             model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
             wandb.watch(model,log="all")
             model, full_param_name= training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
                             val_loader=val_loader, test_loader=test_loader, learning_rate=LR, 
@@ -186,11 +167,7 @@ def main(args):
             # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
             # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
             
-        # exp_avg_acc = np.mean(exp_accs)
-        # exp_avg_precision = np.mean(exp_precisions)
-        # exp_avg_recalls = np.mean(exp_recalls)
-        # exp_avg_f1_score = np.mean(exp_f1_scores)
-        # print(exp_avg_acc)
+
         # wandb.log({"exp_avg_acc":exp_avg_acc,
         #     "exp_avg_precision":exp_avg_precision,
         #     "exp_avg_recalls":exp_avg_recalls,
