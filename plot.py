@@ -141,8 +141,6 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
     score_input = score_input.detach().cpu().numpy()
     score_channel = score_channel.detach().cpu().numpy()
 
-    # print('score_channel:',score_channel)
-    # print('score_channel:',score_channel.shape)
     if flag==1:
         if num_heads >= 4:
 
@@ -152,10 +150,11 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
             for i in range(score_input.shape[0]):
                 # print(score_input[i].shape)
                 ax = axes_input[i // 2, i % 2]
-                h=sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                # h=sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                h=sns.heatmap(score_input[i], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
                 ax.set_title(f'{prediction_type} on Head {i+1}', fontsize = 40)
                 cb=h.figure.colorbar(h.collections[0])
-                cb.ax.tick_params(labelsize=40) #设置colorbar刻度字体大小
+                cb.ax.tick_params(labelsize=40) #set the size of colorbar
                 ax.tick_params(labelsize=20)
             
             folder_name = "Heat_Map/heatmap_score_input"+file_name
@@ -175,11 +174,12 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             for i in range(score_channel.shape[0]):
                 ax = axes_channel[i // 2, i % 2]
-                h2=sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                # h2=sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                h2=sns.heatmap(score_channel[i], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
                 ax.set_title(f'{prediction_type} Head {i+1}',fontsize=50)
                 cb=h2.figure.colorbar(h2.collections[0])
-                cb.ax.tick_params(labelsize=45) #设置colorbar刻度字体大小
-                ax.tick_params(labelsize=45) # 坐标轴刻度
+                cb.ax.tick_params(labelsize=45) # set the size of the color bar
+                ax.tick_params(labelsize=45) # set the size of the label
                 
 
             folder_name = "Heat_Map/heatmap_score_channel"+file_name
@@ -198,7 +198,8 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             for i in range(score_input.shape[0]):
                 ax = axes_input[i]
-                sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                # sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                sns.heatmap(score_input[i],ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
                 ax.set_title(f'Stepwise Attention Heatmap for {prediction_type} on Head {i+1}')
                 ax.set_xlabel('Key')
                 ax.set_ylabel('Query') 
@@ -217,7 +218,8 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
             # if the axes is not 2-dimensionl（whennum_heads < 2），change it into 2 dimensions
             for i in range(score_channel.shape[0]):
                 ax = axes_channel[i]
-                sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                # sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+                sns.heatmap(score_channel[i], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
                 ax.set_title(f'Channelwise Attention Heatmap for {prediction_type} on Head {i+1}')
                 ax.set_xlabel('Key')
                 ax.set_ylabel('Query')
@@ -234,7 +236,8 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             # plot step-wise
             plt.figure(figsize=(10, 8))
-            sns.heatmap(score_input[0],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            # sns.heatmap(score_input[0],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            sns.heatmap(score_input[0], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
             plt.title(f'Stepwise Attention Heatmap for {prediction_type}')
             plt.xlabel("Key")
             plt.ylabel("Query")
@@ -250,7 +253,8 @@ def plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, prediction_
 
             #plot channel wise
             plt.figure(figsize=(10, 8))
-            sns.heatmap(score_channel[0], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            # sns.heatmap(score_channel[0], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            sns.heatmap(score_channel[0], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
             plt.title(f'Stepwise Attention Heatmap for {prediction_type}')
             plt.xlabel("Key")
             plt.ylabel("Query")
@@ -364,12 +368,13 @@ def test_plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, predic
         fig_input, axes_input = plt.subplots(num_rows, 2, figsize=(30, num_rows*15))
         for i in range(score_input.shape[0]):
             ax = axes_input[i // 2, i % 2]
+            # h=sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues', square=True, cbar=False)
             h=sns.heatmap(score_input[i],vmax=0.018, vmin=0.002, ax=ax, cmap='Blues', square=True, cbar=False)
             ax.set_title(f'{prediction_type} on Head {i+1}', fontsize = 40)
             # ax.set_xlabel('Key')
             # ax.set_ylabel('Query')
             cb=h.figure.colorbar(h.collections[0])
-            cb.ax.tick_params(labelsize=40) #设置colorbar刻度字体大小
+            cb.ax.tick_params(labelsize=40)
             ax.tick_params(labelsize=20)
             print(str(j)+','+str(i))
         folder_name = "Heat_Map/heatmap_score_input"+file_name
@@ -389,13 +394,14 @@ def test_plot_heat_map(dataloader,model,file_name,full_param_name,DEVICE, predic
         fig_channel, axes_channel= plt.subplots(num_rows, 2, figsize=(30, num_rows*15))
         for i in range(score_channel.shape[0]):
             ax = axes_channel[i // 2, i % 2]
-            h2=sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            # h2=sns.heatmap(score_channel[i], vmax=0.6, vmin=0.4,ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
+            h2=sns.heatmap(score_channel[i], ax=ax, cmap='Blues',square=True,annot=False,cbar=False)
             ax.set_title(f'{prediction_type} Head {i+1}',fontsize=50)
             # ax.set_xlabel('Key')
             # ax.set_ylabel('Query')
             cb=h2.figure.colorbar(h2.collections[0])
-            cb.ax.tick_params(labelsize=45) #设置colorbar刻度字体大小
-            ax.tick_params(labelsize=45) # 坐标轴刻度
+            cb.ax.tick_params(labelsize=45)
+            ax.tick_params(labelsize=45)
             print(str(j)+','+str(i))
 
         folder_name = "Heat_Map/test_heatmap_score_channel"+file_name
