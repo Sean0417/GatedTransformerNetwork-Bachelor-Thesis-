@@ -31,10 +31,6 @@ def main(args):
         from module2.transformer import Transformer
         from module2.loss import Myloss
         from dataset_process import MyDataset
-    elif args.attn_type == 'longformer_attn':
-        from module3.transformer import Transformer
-        from module3.loss import Myloss
-        from dataset_process_longformer import MyDataset
     else:
         print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
         sys.exit()
@@ -48,15 +44,14 @@ def main(args):
     print(args.is_train)
     # test_model = args.test_model
 
-    draw_key = 1  # 大于等于draw_key才会保存图像
-    file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # 获得文件名字
+    file_name = path.split('/')[-1][0:path.split('/')[-1].index('.')]  # get the name of the file
 
     print(file_name)
-    # 超参数设置
+    # setting hyperparameters
     EPOCH = args.EPOCH
     BATCH_SIZE = args.BATCH_SIZE
     LR = args.learning_rate
-    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
+    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # CPU or GPU
     patience = args.patience
     print(f'use device: {DEVICE}')
 
@@ -73,8 +68,8 @@ def main(args):
     N = args.N
     attn_type = args.attn_type
     dropout = args.dropout
-    pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
-    mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
+    pe = True  # # pe In Gating mechanism, there's no pe in channelwise encoders
+    mask = True  # There's no mask by default inside channelwise encoders.
 
     # training_hyperparameters
     sliding_window_length = args.sliding_window_length
@@ -83,14 +78,6 @@ def main(args):
     # the selection of the optimizer
     optimizer_name = args.optimizer_name
     
-   
-    # split the data into train, validate and test
-    # train_dataset = EEGDataset(path=path, dataset='train', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # test_dataset = EEGDataset(path=path, dataset='test', train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # # validate_dataset = EEGDataset(path=path, dataset='validate',train_percentage=train_percentage,validate_percentage=validate_percentage,sliding_window_length=sliding_window_length)
-    # train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    # val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    # test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
     # =================datasets in GTN=========================================
     train_dataset = MyDataset(path, 'train')
     test_dataset = MyDataset(path, 'test')
@@ -99,12 +86,12 @@ def main(args):
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
     
     # -------------------------------
-    DATA_LEN = train_dataset.train_len  # 训练集样本数量
-    d_input = train_dataset.input_len  # 时间部数量
-    d_channel = train_dataset.channel_len  # 时间序列维度
-    d_output = train_dataset.output_len  # 分类类别
+    DATA_LEN = train_dataset.train_len  # 
+    d_input = train_dataset.input_len  # the length of the timesteps
+    d_channel = train_dataset.channel_len  # the dimension of each time steps
+    d_output = train_dataset.output_len  # the number of classifications
 
-    # 维度展示
+    # print the dimension of the datasetws
     print('data structure: [lines, timesteps, features]')
     print(f'train data size: [{DATA_LEN, d_input, d_channel}]')
     # print(f'validation data size:[{train_dataset.validate_len, d_input, d_channel}]')
@@ -112,7 +99,7 @@ def main(args):
     print(f'Number of classes: {d_output}')
     
     # 2. training and validation
-    # 创建Transformer模型
+    # Model Initialization
     # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
     #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
@@ -138,7 +125,7 @@ def main(args):
 
 
     # wandb run offline for maintaining
-    os.environ['WANDB_MODE'] = 'dryrun'
+    # os.environ['WANDB_MODE'] = 'dryrun'
 
 
     if is_train == True:
@@ -174,35 +161,18 @@ def main(args):
             # execute testing
             test_acc, test_precision, test_recall, test_f1_score,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name=file_name)
             exp_accs.append(test_acc)
-            print(exp_accs)
+            # print(exp_accs)
             exp_precisions.append(test_precision)
             exp_recalls.append(test_recall)
             exp_f1_scores.append(test_f1_score)
 
             # plot confusion matrix and heat_map
             plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
-            # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-            # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-            # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-            # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+            plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
             
-        # exp_avg_acc = np.mean(exp_accs)
-        # exp_avg_precision = np.mean(exp_precisions)
-        # exp_avg_recalls = np.mean(exp_recalls)
-        # exp_avg_f1_score = np.mean(exp_f1_scores)
-        # print(exp_avg_acc)
-        # wandb.log({"exp_avg_acc":exp_avg_acc,
-        #     "exp_avg_precision":exp_avg_precision,
-        #     "exp_avg_recalls":exp_avg_recalls,
-        #     "exp_avg_f1_score":exp_avg_f1_score})
-            # confusion matrix for test set with best accuracy.
-            # test_acc, test_precision, test_recall, test_F1, test_label_pred, test_label_true = evaluation(model=model, dataloader=test_loader,flag="test_set",DEVICE=DEVICE)
-            # train_acc, train_precision, train_recall, train_F1, train_label_pred, train_label_true = evaluation(model=model, dataloader=train_loader,flag="train_set", DEVICE=DEVICE)
-            # wandb.log({"exp_test_acc":test_acc, "exp_test_precision": test_precision, "exp_text_recall": test_recall, "exp_test_F1":test_F1})
-            # wandb.log({"exp_train_acc":test_acc, "exp_train_precision": test_precision, "exp_train_recall": test_recall, "exp_train_F1":test_F1})
-            # plot the learning curve
-            # plot_learning_curve(train_loss=all_epoch_train_loss,val_loss=all_epoch_val_loss,plot_folder_dir=plot_folder_dir,model_name=model_name)
-            # print("round"+str(exp_idx+1)+" has been done")
     else:
         config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
                         sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
