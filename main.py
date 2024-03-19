@@ -24,12 +24,12 @@ import torchsummary
 def main(args):
     # choose the correct attn module to load
     if args.attn_type == 'normal_attn':
-        from module.transformer import Transformer
-        from module.loss import Myloss
+        from model1.transformer import Transformer
+        from model1.loss import Myloss
         from dataset_process import MyDataset
     elif args.attn_type == 'ProbSparse_attn':
-        from module2.transformer import Transformer
-        from module2.loss import Myloss
+        from model2.transformer import Transformer
+        from model2.loss import Myloss
         from dataset_process import MyDataset
     else:
         print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')

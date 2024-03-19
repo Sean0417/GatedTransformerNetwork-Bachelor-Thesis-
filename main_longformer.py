@@ -65,8 +65,8 @@ def main(args):
     optimizer_name = args.optimizer_name
 
     if args.attn_type == 'longformer_attn':
-        from module3.transformer import Transformer
-        from module3.loss import Myloss
+        from model3.transformer import Transformer
+        from model3.loss import Myloss
         from dataset_process_longformer import MyDataset
         train_dataset = MyDataset(path, 'train',longformer_w_ratio)
         test_dataset = MyDataset(path, 'test', longformer_w_ratio)

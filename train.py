@@ -5,7 +5,7 @@ import numpy as np
 import time
 import os
 import wandb
-from module.loss import Myloss
+from model1.loss import Myloss
 import torch.optim as optim
 from evaluation import evaluation
 from tqdm import tqdm
