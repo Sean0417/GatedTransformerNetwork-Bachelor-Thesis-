@@ -1,5 +1,5 @@
 source venv/bin/activate
-project_name="ECG_train_Grid_search_Probsparse"
+project_name="ECG_train_Grid_search_longformer"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
