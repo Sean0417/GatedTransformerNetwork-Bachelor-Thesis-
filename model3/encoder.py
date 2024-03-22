@@ -1,10 +1,10 @@
 from torch.nn import Module
 import torch
 
-from module3.feedForward import FeedForward
-from module3.longformer_attn import LongformerSelfAttention
-from module3.longformer_attn import LongformerConfig
-from module3.multiHeadAttention import MultiHeadAttention
+from model3.feedForward import FeedForward
+from model3.longformer_attn import LongformerSelfAttention
+from model3.longformer_attn import LongformerConfig
+from model3.multiHeadAttention import MultiHeadAttention
 
 class Encoder(Module):
     def __init__(self,

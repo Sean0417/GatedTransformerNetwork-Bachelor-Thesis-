@@ -1,9 +1,9 @@
 from torch.nn import Module
 import torch
 
-from module2.multiHeadAttention import MultiHeadAttention
-from module2.feedForward import FeedForward
-from module2.probsparse_attn import AttentionLayer, ProbAttention
+from model2.multiHeadAttention import MultiHeadAttention
+from model2.feedForward import FeedForward
+from model2.probsparse_attn import AttentionLayer, ProbAttention
 
 class Encoder(Module):
     def __init__(self,

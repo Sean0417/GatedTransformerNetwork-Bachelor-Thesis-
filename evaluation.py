@@ -1,5 +1,5 @@
 import torch
-from module.loss import Myloss
+from model1.loss import Myloss
 import numpy as np
 import wandb
 from plot import plot_heat_map

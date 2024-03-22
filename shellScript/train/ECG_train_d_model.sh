@@ -10,7 +10,7 @@ LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
-d_model_list=(16 32)
+d_model_list=(512)
 d_hidden=1024
 q=8
 v=8
@@ -25,7 +25,7 @@ given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--
 for d_model in "${d_model_list[@]}"
 do
     echo 'training, validation and test'
-    python main.py --project_name=$project_name \
+    python3 main.py --project_name=$project_name \
     --path=$path \
     --plot_folder_dir=$plot_folder_dir \
     --model_folder_dir=$model_folder_dir \

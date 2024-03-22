@@ -9,7 +9,7 @@ import argparse
 import sys
 
 
-from DNN_printer import DNN_printer
+# from DNN_printer import DNN_printer
 
 from train import training_validation
 from evaluation import evaluation
@@ -18,7 +18,6 @@ from evaluation import evaluation
 from plot import plot_Confusion_Matrix
 from plot import plot_heat_map
 from plot import test_plot_heat_map
-import torchsummary
 # setup_seed(30)
 
 def main(args):
@@ -125,7 +124,7 @@ def main(args):
 
 
     # wandb run offline for maintaining
-    # os.environ['WANDB_MODE'] = 'dryrun'
+    os.environ['WANDB_MODE'] = 'dryrun'
 
 
     if is_train == True:
@@ -197,10 +196,10 @@ def main(args):
         # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
         # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
         plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
-        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
     
     
 

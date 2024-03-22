@@ -63,12 +63,13 @@ def plot_Confusion_Matrix(y_true, y_pred, file_name, full_param_name, flag="test
     cm = confusion_matrix(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
 
-    plt.figure(figsize=(4, 4))
-    plt.title(f"confusion matrix on {file_name}")
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, annot_kws={"size":20})
+    plt.figure(figsize=(5, 5))
+    # plt.title(f"confusion matrix on {file_name}")
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, annot_kws={"size":20},cbar_kws={"shrink": 0.5})
     plt.xlabel('Predicted',fontsize=12)
     plt.ylabel('True',fontsize=12)
-
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
     plot_folder_dir = 'Confusion_Matrix/'+file_name+ "_confusion_matrix/"
 
     if os.path.exists(plot_folder_dir):

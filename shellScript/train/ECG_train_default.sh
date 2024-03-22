@@ -18,14 +18,14 @@ LR=1e-4
 patience=7
 train_percentage=0.75
 validate_percentage=0
-d_model_list=(512 256 128 64 32 16)
+d_model_list=(512)
 d_hidden=1024
 q=8
 v=8
 # head=12
 # head=1
-head_list=(8 4 2 1)
-N_list=(8 4 2 1)
+head_list=(8)
+N_list=(8)
 dropout=0.2
 sliding_window_length=21
 optimizer_name='Adagrad'
@@ -40,10 +40,10 @@ do
        do
           for head in "${head_list[@]}"
           do
-                echo 'training, validation and test'
-                echo "Attention Module:$attn_type"
-                echo ”d_model:$d_model, head:$head, encoder:$N“
-                python main.py --project_name=$project_name \
+                # echo 'training, validation and test'
+                # echo "Attention Module:$attn_type"
+                # echo ”d_model:$d_model, head:$head, encoder:$N“
+                python3 main.py --project_name=$project_name \
                     --attn_type=$attn_type \
                     --path=$path \
                     --plot_folder_dir=$plot_folder_dir \

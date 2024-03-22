@@ -21,9 +21,10 @@ sliding_window_length=21
 optimizer_name='Adagrad'
 num_exps=50
 is_train=false
-given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_d_model512_num_encoder8_num_head8_20240202063729_checkpoint.pth"
+attn_type="ProbSparse_attn"
+given_best_model_path="/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/saved_models/ECG/ECG_stepwise_ProbSparse_attn_d512_N8_h8_20240214045150_checkpoint.pth"
 echo 'only conduct testing'
-python main.py --project_name=$project_name \
+python3 main.py --project_name=$project_name \
     --path=$path \
     --plot_folder_dir=$plot_folder_dir \
     --model_folder_dir=$model_folder_dir \
@@ -43,5 +44,6 @@ python main.py --project_name=$project_name \
     --sliding_window_length=$sliding_window_length \
     --optimizer_name=$optimizer_name \
     --num_exps=$num_exps \
-    --given_best_model_path=$given_best_model_path
+    --given_best_model_path=$given_best_model_path \
+    --attn_type=$attn_type
 deactivate

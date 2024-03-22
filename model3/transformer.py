@@ -1,7 +1,7 @@
 from torch.nn import Module
 import torch
 from torch.nn import ModuleList
-from module3.encoder import Encoder
+from model3.encoder import Encoder
 import math
 import torch.nn.functional as F
 
