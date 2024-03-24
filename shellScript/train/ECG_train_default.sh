@@ -1,12 +1,11 @@
 source venv/bin/activate
 # project_name="ECG_train_Probsparse_attn_dropout"
-# project_name="ECG_train_with_only_stepwise_(16,1,1)"
+# project_name="ECG_train_with_only_stepwise_(16,1,1)" 
 project_name="ECG_train_Grid_search_Probsparse"
 # project_name="ECG_train_with_only_channelwise"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
 # attn_list=("normal_attn","ProbSparse_attn","longformer_attn")
 attn_list=("longformer_attn")
-# attn_type='normal_attn'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
 EPOCH=100
@@ -24,7 +23,6 @@ longformer_w_ratio=0.25
 head_list=(8)
 N_list=(8)
 dropout=0.2
-sliding_window_length=21
 optimizer_name='Adagrad'
 num_exps=50
 is_train=true
@@ -37,9 +35,9 @@ do
        do
           for head in "${head_list[@]}"
           do
-                # echo 'training, validation and test'
-                # echo "Attention Module:$attn_type"
-                # echo ”d_model:$d_model, head:$head, encoder:$N“
+                echo 'training, validation and test'
+                echo "Attention Module:$attn_type"
+                echo ”d_model:$d_model, head:$head, encoder:$N“
                 python3 main.py --project_name=$project_name \
                     --attn_type=$attn_type \
                     --path=$path \
@@ -58,7 +56,6 @@ do
                     -head=$head \
                     -N=$N \
                     --dropout=$dropout \
-                    --sliding_window_length=$sliding_window_length \
                     --optimizer_name=$optimizer_name \
                     --num_exps=$num_exps \
                     --longformer_w_ratio=$longformer_w_ratio \

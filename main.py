@@ -56,7 +56,6 @@ def main(args):
     mask = True  # There's no mask by default inside channelwise encoders.
 
     # training_hyperparameters
-    sliding_window_length = args.sliding_window_length
     num_exps = args.num_exps
     
     # the selection of the optimizer
@@ -146,8 +145,7 @@ def main(args):
         # experiments loop
         for exp_idx in range(num_exps):
                 # wandb initialization
-            config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
-                        sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
+            config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h, param_num = param_sum,
                         dropout_in_Encoders=dropout, attention_type = attn_type,
                         model_size= 'Size: {:.3f} MB'.format(size_all_mb),d_model=d_model, num_Encoder= N)
@@ -187,8 +185,7 @@ def main(args):
             plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
             
     else:
-        config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH,
-                        sliding_window_length=sliding_window_length,num_of_experiments = num_exps,
+        config = dict(learningRate = LR, batch_size = BATCH_SIZE, num_of_epochs = EPOCH, num_of_experiments = num_exps,
                         optimizer = optimizer_name, head_of_multi_attention=h, param_num = param_size, model_size= 'Size: {:.3f} MB'.format(size_all_mb),
                         d_model=d_model, num_Encoder= N,dropout_in_Encoders=dropout)
 
@@ -239,7 +236,6 @@ if __name__ == "__main__":
     parser.add_argument('-head', type=int, required=True, help='the head number of the Multi-Head Attention')
     parser.add_argument('-N',  type=int, required=True, help='the number of the encoders')
     parser.add_argument('--dropout', type=float, required=True, help="the random dropout")
-    parser.add_argument('--sliding_window_length', type=int, required=True, help="The length of sliding window when spliting the data")
     parser.add_argument('--optimizer_name',type=str, required=True, default='Adagrad', help="The name of the optimizer")
     parser.add_argument('--is_train',action="store_true",help="parameter to determine whether run training cycle or not")
     parser.add_argument('--given_best_model_path', type=str, required=False, help="the model directory used for testing")

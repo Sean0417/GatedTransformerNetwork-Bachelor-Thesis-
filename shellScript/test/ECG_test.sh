@@ -41,7 +41,6 @@ python3 main.py --project_name=$project_name \
     -head=$head \
     -N=$N \
     --dropout=$dropout \
-    --sliding_window_length=$sliding_window_length \
     --optimizer_name=$optimizer_name \
     --num_exps=$num_exps \
     --given_best_model_path=$given_best_model_path \
