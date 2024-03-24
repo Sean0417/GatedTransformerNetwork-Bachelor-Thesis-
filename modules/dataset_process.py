@@ -9,7 +9,6 @@ class MyDataset(Dataset):
                  path: str,
                  dataset: str):
         """
-        训练数据集与测试数据集的Dataset对象
         :param path: directory of the file
         :param dataset: define whether it's training data or test data
         """
