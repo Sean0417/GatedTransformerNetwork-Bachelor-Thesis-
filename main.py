@@ -9,13 +9,13 @@ import sys
 
 # from DNN_printer import DNN_printer
 
-from train import training_validation
-from evaluation import evaluation
+from modules.train import training_validation
+from modules.evaluation import evaluation
 from utils.random_seed import setup_seed
-from evaluation import evaluation
-from plot import plot_Confusion_Matrix
-from plot import plot_heat_map
-from plot import test_plot_heat_map
+from modules.evaluation import evaluation
+from modules.plot import plot_Confusion_Matrix
+from modules.plot import plot_heat_map
+from modules.plot import test_plot_heat_map
 # setup_seed(30)
 
 def main(args):
@@ -64,13 +64,13 @@ def main(args):
     # choose the correct attn module to load
     if args.attn_type == 'normal_attn':
         from model1.transformer import Transformer
-        from dataset_process import MyDataset
+        from modules.dataset_process import MyDataset
     elif args.attn_type == 'ProbSparse_attn':
         from model2.transformer import Transformer
-        from dataset_process import MyDataset
+        from modules.dataset_process import MyDataset
     elif args.attn_type == 'longformer_attn':
         from model3.transformer import Transformer
-        from dataset_process_longformer import MyDataset
+        from modules.dataset_process_longformer import MyDataset
         longformer_w_ratio=args.longformer_w_ratio
     else:
         print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
