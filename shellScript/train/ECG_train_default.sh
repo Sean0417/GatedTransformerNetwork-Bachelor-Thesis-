@@ -4,10 +4,8 @@ source venv/bin/activate
 project_name="ECG_train_Grid_search_Probsparse"
 # project_name="ECG_train_with_only_channelwise"
 path='/homes/soxuxiee/GatedTransformerNetwork-Bachelor-Thesis--1/dataset/ECG.mat'
-# attn_type="ProbSparse_attn"
-# attn_type="longformer_attn"
-attn_list=("ProbSparse_attn")
-# attn_list=("normal_attn")
+# attn_list=("normal_attn","ProbSparse_attn","longformer_attn")
+attn_list=("longformer_attn")
 # attn_type='normal_attn'
 plot_folder_dir="./pic" 
 model_folder_dir="./saved_models"
@@ -22,8 +20,7 @@ d_model_list=(512)
 d_hidden=1024
 q=8
 v=8
-# head=12
-# head=1
+longformer_w_ratio=0.25
 head_list=(8)
 N_list=(8)
 dropout=0.2
@@ -64,6 +61,7 @@ do
                     --sliding_window_length=$sliding_window_length \
                     --optimizer_name=$optimizer_name \
                     --num_exps=$num_exps \
+                    --longformer_w_ratio=$longformer_w_ratio \
                     --is_train
             done
         done
