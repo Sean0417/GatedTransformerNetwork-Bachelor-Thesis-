@@ -1,8 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
 import time
-from tqdm import tqdm
-import numpy as np
 import os
 import wandb
 import argparse
@@ -21,19 +19,6 @@ from plot import test_plot_heat_map
 # setup_seed(30)
 
 def main(args):
-    # choose the correct attn module to load
-    if args.attn_type == 'normal_attn':
-        from model1.transformer import Transformer
-        from model1.loss import Myloss
-        from dataset_process import MyDataset
-    elif args.attn_type == 'ProbSparse_attn':
-        from model2.transformer import Transformer
-        from model2.loss import Myloss
-        from dataset_process import MyDataset
-    else:
-        print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
-        sys.exit()
-
 
     # data preprocessing
     path = args.path
@@ -76,13 +61,39 @@ def main(args):
     
     # the selection of the optimizer
     optimizer_name = args.optimizer_name
-    
+
+    # choose the correct attn module to load
+    if args.attn_type == 'normal_attn':
+        from model1.transformer import Transformer
+        from dataset_process import MyDataset
+    elif args.attn_type == 'ProbSparse_attn':
+        from model2.transformer import Transformer
+        from dataset_process import MyDataset
+    elif args.attn_type == 'longformer_attn':
+        from model3.transformer import Transformer
+        from dataset_process_longformer import MyDataset
+        longformer_w_ratio=args.longformer_w_ratio
+    else:
+        print('Please enter the correct attention module, normal_attn, ProbSparse_attn and longformer_attn are included.')
+        sys.exit()
     # =================datasets in GTN=========================================
-    train_dataset = MyDataset(path, 'train')
-    test_dataset = MyDataset(path, 'test')
-    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+    if args.attn_type == 'longformer_attn':
+        train_dataset = MyDataset(path, 'train',longformer_w_ratio)
+        test_dataset = MyDataset(path, 'test', longformer_w_ratio)
+        train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+        attention_window = train_dataset.attention_window 
+        model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
+    else:
+        train_dataset = MyDataset(path, 'train')
+        test_dataset = MyDataset(path, 'test')
+        train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+        model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     
     # -------------------------------
     DATA_LEN = train_dataset.train_len  # 
@@ -97,14 +108,7 @@ def main(args):
     print(f'test data size: [{train_dataset.test_len, d_input, d_channel}]')
     print(f'Number of classes: {d_output}')
     
-    # 2. training and validation
-    # Model Initialization
-    # net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-    #                 q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    
-    
+    # calculate the model parameters
     param_size = 0
     param_sum = 0
     buffer_size = 0
@@ -148,12 +152,16 @@ def main(args):
                     reinit=True,
                     )
             # model initialization
-            model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+            if args.attn_type == 'longformer_attn':
+                model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
+            else:
+                model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+                            q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
             wandb.watch(model,log="all")
             model, full_param_name= training_validation(model=model, epoch_sum=EPOCH, train_loader=train_loader, 
                             val_loader=val_loader, test_loader=test_loader, learning_rate=LR, 
-                            patience=patience, exp_index=1, 
+                            patience=patience, exp_index=exp_idx, 
                             model_folder_directory=model_folder_dir, 
                             DEVICE=DEVICE,optimizer_name=optimizer_name, 
                             file_name = file_name,num_encoder=N,num_head=h,d_model=d_model, attn_type=attn_type)
@@ -183,7 +191,11 @@ def main(args):
         config=config,
         reinit=True,
         )
-        model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+        if attn_type=="longformer_attn":
+            model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+                        q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
+        else:
+            model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden, q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
         model.load_state_dict(torch.load(args.given_best_model_path))
 
         exp_timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
@@ -191,15 +203,11 @@ def main(args):
  
         # execute testing
         _,_,_,_,test_label_pred,test_label_true = evaluation(model=model, dataloader=test_loader,DEVICE=DEVICE,file_name = file_name)
-        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-        # plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
         plot_Confusion_Matrix(test_label_true, test_label_pred, file_name,full_param_name, flag="test_set")
-        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
-        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
-        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
-        # test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TP")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="TN")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FP")
+        test_plot_heat_map(test_loader, model, file_name,full_param_name, DEVICE,prediction_type="FN")
     
     
 
@@ -233,6 +241,6 @@ if __name__ == "__main__":
     parser.add_argument('--attn_type', type=str, required=True, help="the type of attention module, normal attention, ProbSparse attention and Longformer attention are included.")
     parser.add_argument('--v_max',type=float, help="The upper bound of the attention heatmap")
     parser.add_argument('--v_min', type=float, help="the lower bound of the attention heatmap")
-    parser.add_argument('--longformer_w_ratio', type=float, help="The ratio of the window compared with sequence length.")
+    parser.add_argument('--longformer_w_ratio', type=float,required=False, help="The ratio of the window compared with sequence length.")
     args = parser.parse_args()
     main(args)
