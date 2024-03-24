@@ -84,6 +84,11 @@ def main(args):
         val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
         test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
         attention_window = train_dataset.attention_window 
+        # -------------------------------
+        DATA_LEN = train_dataset.train_len  # 
+        d_input = train_dataset.input_len  # the length of the timesteps
+        d_channel = train_dataset.channel_len  # the dimension of each time steps
+        d_output = train_dataset.output_len  # the number of classifications
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                         q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE,attention_window=attention_window).to(DEVICE)
     else:
@@ -92,14 +97,15 @@ def main(args):
         train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         val_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
         test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
+        # -------------------------------
+        DATA_LEN = train_dataset.train_len  # 
+        d_input = train_dataset.input_len  # the length of the timesteps
+        d_channel = train_dataset.channel_len  # the dimension of each time steps
+        d_output = train_dataset.output_len  # the number of classifications
         model = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
             q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     
-    # -------------------------------
-    DATA_LEN = train_dataset.train_len  # 
-    d_input = train_dataset.input_len  # the length of the timesteps
-    d_channel = train_dataset.channel_len  # the dimension of each time steps
-    d_output = train_dataset.output_len  # the number of classifications
+
 
     # print the dimension of the datasetws
     print('data structure: [lines, timesteps, features]')
