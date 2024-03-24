@@ -33,24 +33,6 @@ class Transformer(Module):
         self.device=device
         self.N=N
         self.attention_window = attention_window
-        # # stepwise, mask is given in the function, mask depends on the input
-        # self.encoder_list_1 = ModuleList([Encoder(d_model=d_model,
-        #                                           d_hidden=d_hidden,
-        #                                           q=q,
-        #                                           v=v,
-        #                                           h=h,
-        #                                           mask=mask,
-        #                                           dropout=dropout,
-        #                                           device=device,
-        #                                           encoder_type='stepwise') for _ in range(N)])
-        # # channel_wise, mask isn't given here, so it's set to Fault by default.
-        # self.encoder_list_2 = ModuleList([Encoder(d_model=d_model,
-        #                                           d_hidden=d_hidden,
-        #                                           q=q,
-        #                                           v=v,
-        #                                           h=h,
-        #                                           dropout=dropout,
-        #                                           device=device,encoder_type='channelwise') for _ in range(N)])
 
         self.embedding_channel = torch.nn.Linear(d_channel, d_model)
         self.embedding_input = torch.nn.Linear(d_input, d_model)
@@ -64,14 +46,8 @@ class Transformer(Module):
         # self.stage = stage
 
     def forward(self, x, stage):
-        """
-        前向传播
-        :param x: 输入
-        :param stage: 用于描述此时是训练集的训练过程还是测试集的测试过程  测试过程中均不在加mask机制
-        :return: 输出，gate之后的二维向量，step-wise encoder中的score矩阵，channel-wise encoder中的score矩阵，step-wise embedding后的三维矩阵，channel-wise embedding后的三维矩阵，gate
-        """
+
         # step-wise
-        # score矩阵为 input， 默认加mask 和 pe
         encoding_1 = self.embedding_channel(x) # x[batchsize, time_step, feature] -> encoding_1[batchsize, time_step, d_model]
         seq1_len = encoding_1.shape[1]
         attn_window_size_1 = int(0.25*seq1_len)
@@ -109,7 +85,6 @@ class Transformer(Module):
             encoding_1, score_input = encoder(encoding_1, stage) 
 
         # channel-wise
-        # score矩阵为channel 默认不加mask和pe
         encoding_2 = self.embedding_input(x.transpose(-1, -2)) # x[batchsize, time_step, feature] -> encoding_1[batchsize, feature, d_model]
         seq2_len = encoding_2.shape[1]
         attn_window_size_2=int(0.5*seq2_len)
@@ -133,7 +108,6 @@ class Transformer(Module):
         for encoder in encoder_list_2:
             encoding_2, score_channel = encoder(encoding_2, stage) # [1000, 14, 512]
 
-        # 三维变二维
         encoding_1 = encoding_1.reshape(encoding_1.shape[0], -1) # stepwise S [1000, d_model*]
         encoding_2 = encoding_2.reshape(encoding_2.shape[0], -1) # channelwise C
 
@@ -143,10 +117,7 @@ class Transformer(Module):
         g1 = gate[:,0:1]
         g2 = gate[:,1:2]
         encoding = torch.cat([encoding_1 * g1, encoding_2*g2], dim=-1) #y
-        # gate = F.softmax(self.gate(torch.cat([encoding_1, encoding_2], dim=-1)), dim=-1)
-        # encoding = torch.cat([encoding_1 * gate[:, 0:1], encoding_2 * gate[:, 1:2]], dim=-1)
-
-        # 输出
+        
         output = self.output_linear(encoding)
 
         return output, encoding, score_input, score_channel, input_to_gather, channel_to_gather, gate
