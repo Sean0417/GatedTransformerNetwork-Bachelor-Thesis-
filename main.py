@@ -11,12 +11,10 @@ import sys
 
 from modules.train import training_validation
 from modules.evaluation import evaluation
-from utils.random_seed import setup_seed
 from modules.evaluation import evaluation
 from modules.plot import plot_Confusion_Matrix
 from modules.plot import plot_heat_map
 from modules.plot import test_plot_heat_map
-# setup_seed(30)
 
 def main(args):
 
